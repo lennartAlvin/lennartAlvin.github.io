@@ -4,9 +4,11 @@ const nextConfig = {
   images: {
     unoptimized: true, // Required for static export
   },
-  // Required for GitHub Pages
+  // Configure for GitHub Pages
   basePath: '',
   assetPrefix: '',
+  distDir: 'build',
+  trailingSlash: true,
 }
 
 module.exports = nextConfig 
