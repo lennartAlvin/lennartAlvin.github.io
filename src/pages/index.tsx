@@ -93,7 +93,7 @@ export default function Home() {
             variants={fadeInUp}
           >
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              I'm a 23-year-old software developer based in Alingsås, Sweden. I recently graduated from the
+              I'm a 24-year-old software developer based in Alingsås, Sweden. I recently graduated from the
               University of Borås with a Bachelor's degree in Information Systems. Currently working at WIS,
               I develop and maintain applications primarily built with .NET, WinUI, and Azure DevOps environments.
             </p>
@@ -204,7 +204,7 @@ export default function Home() {
             variants={fadeInUp}
           >
             <p className="text-lg text-gray-600 dark:text-gray-300 text-center max-w-2xl">
-              I'm always interested in hearing about new opportunities, interesting projects, or just having a chat about technology.
+              I'm always interested in hearing about new opportunities, interesting projects, or just having a chat.
             </p>
             <div className="flex space-x-6">
               <a
