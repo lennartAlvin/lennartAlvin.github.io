@@ -125,7 +125,15 @@ export default function Home() {
           >
             <SkillCategory
               title="Backend Development"
-              skills={['C#', '.NET 8', 'RESTful APIs', 'SQL Server']}
+              skills={[
+                'C# / .NET 8',
+                'ASP.NET Core',
+                'Entity Framework Core',
+                'RESTful APIs',
+                'SQL Server',
+                'LINQ',
+                'Dependency Injection',
+              ]}
               isDark={isDarkMode}
             />
             <SkillCategory
