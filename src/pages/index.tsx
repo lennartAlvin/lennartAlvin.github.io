@@ -41,14 +41,14 @@ export default function Home() {
 
         {/* Hero Section */}
         <motion.section 
-          className="flex flex-col md:flex-row items-center justify-between py-16"
+          className="flex flex-col md:flex-row items-center justify-between py-16 px-4 rounded-2xl mb-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900"
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
           variants={staggerContainer}
         >
-          <motion.div className="md:w-1/2 space-y-6" variants={fadeInUp}>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white">
+          <motion.div className="md:w-1/2 space-y-6 md:pr-8" variants={fadeInUp}>
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
               Hi, I'm Alvin Lennarthsson
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300">
@@ -247,21 +247,55 @@ export default function Home() {
 }
 
 function SkillCategory({ title, skills, isDark }: { title: string; skills: string[]; isDark: boolean }) {
+  const isLearning = title === "Currently Learning";
   return (
     <motion.div 
-      className={`p-6 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}
+      className={`p-6 rounded-xl backdrop-blur-sm ${
+        isLearning 
+          ? `${isDark ? 'bg-blue-900/20' : 'bg-blue-50'} border-2 ${isDark ? 'border-blue-500/30' : 'border-blue-200'}` 
+          : `${isDark ? 'bg-gray-800/90' : 'bg-white/90'} border ${isDark ? 'border-gray-700' : 'border-gray-200'}`
+      } shadow-lg`}
       variants={{
         initial: { y: 20, opacity: 0 },
         animate: { y: 0, opacity: 1 }
       }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ 
+        scale: 1.02,
+        boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.3)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+      }}
       transition={{ duration: 0.2 }}
     >
-      <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{title}</h3>
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
+        {isLearning && (
+          <motion.span 
+            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+            animate={{
+              scale: [1, 1.05, 1],
+              opacity: [1, 0.8, 1]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            In Progress
+          </motion.span>
+        )}
+      </div>
       <ul className="space-y-2">
         {skills.map((skill) => (
-          <li key={skill} className="text-gray-600 dark:text-gray-300">
-            {skill}
+          <li 
+            key={skill} 
+            className="text-gray-600 dark:text-gray-300 flex items-center space-x-2"
+          >
+            <span className={`w-2 h-2 rounded-full ${
+              isLearning 
+                ? 'bg-blue-500 dark:bg-blue-400' 
+                : 'bg-blue-500 dark:bg-blue-400'
+            }`}></span>
+            <span>{skill}</span>
           </li>
         ))}
       </ul>
@@ -279,26 +313,32 @@ function ProjectCard({ title, description, technologies, githubUrl, isDark, impa
 }) {
   return (
     <motion.div 
-      className={`p-6 rounded-lg ${isDark ? 'bg-gray-800' : 'bg-gray-100'} transition-colors duration-200`}
+      className={`p-8 rounded-xl ${isDark ? 'bg-gray-800/90' : 'bg-white/90'} shadow-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} backdrop-blur-sm`}
       variants={{
         initial: { y: 20, opacity: 0 },
         animate: { y: 0, opacity: 1 }
       }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ 
+        scale: 1.02,
+        boxShadow: isDark ? '0 20px 25px -5px rgba(0, 0, 0, 0.3)' : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+      }}
       transition={{ duration: 0.2 }}
     >
-      <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{title}</h3>
-      <p className="text-gray-600 dark:text-gray-300 mb-4">{description}</p>
+      <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">{description}</p>
       {impact && (
-        <p className="text-green-600 dark:text-green-400 mb-4 font-medium">
-          {impact}
-        </p>
+        <div className="mb-6 flex items-center space-x-2">
+          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+          <p className="text-green-600 dark:text-green-400 font-medium">
+            {impact}
+          </p>
+        </div>
       )}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-6">
         {technologies.map((tech) => (
           <span
             key={tech}
-            className="px-3 py-1 rounded-full text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+            className="px-3 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 font-medium"
           >
             {tech}
           </span>
@@ -308,11 +348,11 @@ function ProjectCard({ title, description, technologies, githubUrl, isDark, impa
         href={githubUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:underline"
+        className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        <FaGithub className="w-4 h-4" />
+        <FaGithub className="w-5 h-5" />
         <span>View on GitHub</span>
       </motion.a>
     </motion.div>
