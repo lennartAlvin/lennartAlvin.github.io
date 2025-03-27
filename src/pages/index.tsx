@@ -167,7 +167,7 @@ export default function Home() {
               title="Portfolio Website"
               description="A modern, responsive portfolio website built with Next.js and Tailwind CSS. Features dark mode support and smooth animations."
               technologies={['Next.js', 'TypeScript', 'Tailwind CSS']}
-              githubUrl="https://lennartalvin.github.io/"
+              githubUrl="https://github.com/lennartAlvin/lennartAlvin.github.io"
               isDark={isDarkMode}
             />
             {/* Add more project cards as you complete them */}
