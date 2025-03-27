@@ -9,6 +9,16 @@ const nextConfig = {
   assetPrefix: '',
   distDir: 'build',
   trailingSlash: true,
+  // Add redirects for GitHub Pages
+  async redirects() {
+    return [
+      {
+        source: '/index.html',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
 }
 
 module.exports = nextConfig 
