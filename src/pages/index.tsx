@@ -52,11 +52,12 @@ export default function Home() {
               Hi, I'm Alvin Lennarthsson
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              A software developer with a passion for creating smart, user-friendly applications.
+              A software developer who enjoys crafting complete solutions from backend to frontend.
             </p>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              With a strong foundation in C#, .NET, and API integration, I thrive on solving challenging problems
-              and constantly learning new technologies.
+              Working with C# and .NET for backend systems while embracing modern frontend technologies, 
+              I strive to build applications that are both reliable and user-friendly. I'm passionate about 
+              clean code and always eager to learn new ways to improve my craft.
             </p>
           </motion.div>
           <motion.div 
@@ -119,27 +120,37 @@ export default function Home() {
             Skills & Technologies
           </motion.h2>
           <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             variants={staggerContainer}
           >
             <SkillCategory
-              title="Languages & Frameworks"
-              skills={['C#', '.NET 8', 'WinUI', 'XAML']}
+              title="Backend Development"
+              skills={['C#', '.NET 8', 'RESTful APIs', 'SQL Server']}
               isDark={isDarkMode}
             />
             <SkillCategory
-              title="API & Integrations"
-              skills={['REST APIs', 'JSON', 'External Services', 'Payment Gateways']}
+              title="Frontend Development"
+              skills={['HTML5', 'CSS3', 'React/Next.js', 'TypeScript', 'Tailwind CSS', 'WinUI/XAML']}
               isDark={isDarkMode}
             />
             <SkillCategory
-              title="Tools & Platforms"
-              skills={['Azure DevOps', 'Git', 'Windows App SDK', 'MSIX']}
+              title="Tools & DevOps"
+              skills={['Azure DevOps', 'Git', 'CI/CD', 'MSIX']}
               isDark={isDarkMode}
             />
             <SkillCategory
               title="Testing & Quality"
               skills={['xUnit', 'AutoFixture', 'Moq', 'TDD']}
+              isDark={isDarkMode}
+            />
+            <SkillCategory
+              title="Integration & Services"
+              skills={['REST APIs', 'Payment Gateways', 'Azure Services', 'Third-party APIs']}
+              isDark={isDarkMode}
+            />
+            <SkillCategory
+              title="Currently Learning"
+              skills={['Cloud Architecture', 'Microservices', 'Docker', 'System Design']}
               isDark={isDarkMode}
             />
           </motion.div>
@@ -165,12 +176,12 @@ export default function Home() {
           >
             <ProjectCard
               title="Portfolio Website"
-              description="A modern, responsive portfolio website built with Next.js and Tailwind CSS. Features dark mode support and smooth animations."
-              technologies={['Next.js', 'TypeScript', 'Tailwind CSS']}
-              githubUrl="https://github.com/lennartAlvin/lennartAlvin.github.io"
+              description="A modern, responsive portfolio website built with Next.js and Tailwind CSS. Features dark mode support, smooth animations, and a clean, professional design showcasing my full-stack development skills."
+              technologies={['Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion']}
+              githubUrl="https://github.com/lennartAlvin/Portfolio"
               isDark={isDarkMode}
+              impact="Personal project demonstrating modern web development practices"
             />
-            {/* Add more project cards as you complete them */}
           </motion.div>
         </motion.section>
 
@@ -258,12 +269,13 @@ function SkillCategory({ title, skills, isDark }: { title: string; skills: strin
   );
 }
 
-function ProjectCard({ title, description, technologies, githubUrl, isDark }: {
+function ProjectCard({ title, description, technologies, githubUrl, isDark, impact }: {
   title: string;
   description: string;
   technologies: string[];
   githubUrl: string;
   isDark: boolean;
+  impact?: string;
 }) {
   return (
     <motion.div 
@@ -277,6 +289,11 @@ function ProjectCard({ title, description, technologies, githubUrl, isDark }: {
     >
       <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{title}</h3>
       <p className="text-gray-600 dark:text-gray-300 mb-4">{description}</p>
+      {impact && (
+        <p className="text-green-600 dark:text-green-400 mb-4 font-medium">
+          {impact}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2 mb-4">
         {technologies.map((tech) => (
           <span
