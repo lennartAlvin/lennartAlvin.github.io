@@ -29,6 +29,7 @@ export default function Contact() {
             href="https://github.com/lennartAlvin"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="GitHub"
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
           >
             <FaGithub className="w-8 h-8" />
@@ -37,12 +38,14 @@ export default function Contact() {
             href="https://www.linkedin.com/in/alvin-lennarthsson-aab594220/"
             target="_blank"
             rel="noopener noreferrer"
+            aria-label="LinkedIn"
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
           >
             <FaLinkedin className="w-8 h-8" />
           </a>
           <a
             href="mailto:alvin.lennarthsson@gmail.com"
+            aria-label="Email"
             className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
           >
             <FaEnvelope className="w-8 h-8" />
