@@ -4,9 +4,11 @@ My personal portfolio website built with Next.js and Tailwind CSS. View it live 
 
 ## Features
 
-- 🌓 Dark/Light mode
+- 🌓 Dark/Light mode with theme persistence
+- 🖼️ Masonry project grid with smooth hover reveals
+- 🔍 Modal popups for detailed project info
 - 📱 Fully responsive design
-- 🎯 Modern UI with smooth animations
+- 🎯 Modern UI with Framer Motion animations
 - ⚡ Fast performance
 - 🎨 Clean and minimalist design
 
@@ -45,4 +47,5 @@ npm run build
 
 ## License
 
-Copyright © 2024 Alvin Lennarthsson. All rights reserved.
+This project is released under the MIT License. See [LICENSE](LICENSE) for
+details.

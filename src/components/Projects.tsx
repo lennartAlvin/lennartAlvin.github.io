@@ -1,29 +1,38 @@
 import { motion } from 'framer-motion';
 import { fadeInUp, staggerContainer } from '@/utils/animations';
 import { FaGithub } from 'react-icons/fa';
+import { useState } from 'react';
+import Modal from './Modal';
 
-interface ProjectCardProps {
+export interface Project {
   title: string;
   description: string;
   technologies: string[];
   githubUrl: string;
-  isDark: boolean;
   impact?: string;
 }
 
-function ProjectCard({ title, description, technologies, githubUrl, isDark, impact }: ProjectCardProps) {
+interface ProjectCardProps {
+  project: Project;
+  isDark: boolean;
+  onOpen: () => void;
+}
+
+function ProjectCard({ project, isDark, onOpen }: ProjectCardProps) {
+  const { title, description, technologies, githubUrl, impact } = project;
   return (
     <motion.div
-      className={`masonry-item p-8 rounded-xl ${isDark ? 'bg-gray-800/90' : 'bg-white/90'} shadow-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} backdrop-blur-sm`}
+      onClick={onOpen}
+      className={`masonry-item cursor-pointer p-8 rounded-xl ${isDark ? 'bg-gray-800/90' : 'bg-white/90'} shadow-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} backdrop-blur-sm`}
       variants={{
         initial: { y: 20, opacity: 0 },
         animate: { y: 0, opacity: 1 },
       }}
       whileHover={{
-        scale: 1.02,
+        scale: 1.05,
         boxShadow: isDark
-          ? '0 20px 25px -5px rgba(0, 0, 0, 0.3)'
-          : '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+          ? '0 0 15px rgba(0,240,255,0.6)'
+          : '0 0 15px rgba(0,240,255,0.4)',
       }}
       transition={{ duration: 0.2 }}
     >
@@ -64,7 +73,20 @@ interface ProjectsProps {
   isDark: boolean;
 }
 
+const projects: Project[] = [
+  {
+    title: 'Portfolio Website',
+    description:
+      'A modern, responsive portfolio website built with Next.js and Tailwind CSS. Features dark mode support, smooth animations, and a clean, professional design showcasing my full-stack development skills.',
+    technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion'],
+    githubUrl: 'https://github.com/lennartAlvin/Portfolio',
+    impact: 'Personal project demonstrating modern web development practices',
+  },
+];
+
 export default function Projects({ isDark }: ProjectsProps) {
+  const [active, setActive] = useState<Project | null>(null);
+
   return (
     <motion.section
       className="py-16"
@@ -83,15 +105,27 @@ export default function Projects({ isDark }: ProjectsProps) {
         className="masonry columns-1 md:columns-2"
         variants={staggerContainer}
       >
-        <ProjectCard
-          title="Portfolio Website"
-          description="A modern, responsive portfolio website built with Next.js and Tailwind CSS. Features dark mode support, smooth animations, and a clean, professional design showcasing my full-stack development skills."
-          technologies={['Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion']}
-          githubUrl="https://github.com/lennartAlvin/Portfolio"
-          isDark={isDark}
-          impact="Personal project demonstrating modern web development practices"
-        />
+        {projects.map((p) => (
+          <ProjectCard key={p.title} project={p} isDark={isDark} onOpen={() => setActive(p)} />
+        ))}
       </motion.div>
+      <Modal isOpen={active !== null} onClose={() => setActive(null)}>
+        {active && (
+          <div>
+            <h3 className="text-2xl font-bold mb-4">{active.title}</h3>
+            <p className="mb-4">{active.description}</p>
+            <a
+              href={active.githubUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 text-cyan-400 hover:underline"
+            >
+              <FaGithub className="w-5 h-5" />
+              <span>View on GitHub</span>
+            </a>
+          </div>
+        )}
+      </Modal>
     </motion.section>
   );
 }
