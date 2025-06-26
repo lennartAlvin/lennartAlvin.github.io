@@ -6,4 +6,27 @@
   body {
     @apply transition-colors duration-200;
   }
-} 
+}
+
+@layer utilities {
+  .masonry {
+    column-gap: 2rem;
+  }
+
+  .masonry-item {
+    break-inside: avoid;
+    margin-bottom: 2rem;
+  }
+
+  @supports not (column-count: 1) {
+    .masonry {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 2rem;
+    }
+
+    .masonry-item {
+      margin-bottom: 0;
+    }
+  }
+}
