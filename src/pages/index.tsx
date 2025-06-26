@@ -9,6 +9,8 @@ import Projects from '@/components/Projects';
 import Contact from '@/components/Contact';
 import CustomCursor from '@/components/CustomCursor';
 import ParticleBackground from '@/components/ParticleBackground';
+import InteractiveBackground from '@/components/InteractiveBackground';
+import { sectionFadeSlide } from '@/utils/animations';
 
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -39,43 +41,128 @@ export default function Home() {
       {/* Custom Cursor */}
       <CustomCursor />
       
-      {/* Particle Background */}
+      {/* Interactive Background - New advanced background */}
+      <InteractiveBackground isDark={isDarkMode} />
+      
+      {/* Particle Background - Keep for additional ambiance */}
       <ParticleBackground />
 
-      {/* Dark Mode Toggle */}
+      {/* Enhanced Dark Mode Toggle */}
       <motion.button
         onClick={() => setIsDarkMode(!isDarkMode)}
         className="fixed top-6 right-6 z-50 p-3 rounded-full bg-gradient-to-r from-cyber-cyan/20 to-cyber-blue/20 hover:from-cyber-cyan/30 hover:to-cyber-blue/30 border border-cyber-cyan/30 backdrop-blur-sm transition-all duration-300 group"
-        whileHover={{ scale: 1.1, y: -2 }}
-        whileTap={{ scale: 0.95 }}
-        style={{
-          boxShadow: '0 0 20px rgba(0, 240, 255, 0.3)',
+        whileHover={{ 
+          scale: 1.1, 
+          y: -2,
+          boxShadow: '0 0 30px rgba(0, 240, 255, 0.4)'
         }}
+        whileTap={{ scale: 0.95 }}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1, duration: 0.5 }}
       >
-        <span className="text-2xl group-hover:rotate-12 transition-transform duration-300">
+        <motion.span 
+          className="text-2xl block"
+          animate={{ rotate: isDarkMode ? 0 : 180 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+        >
           {isDarkMode ? '🌞' : '🌙'}
-        </span>
+        </motion.span>
       </motion.button>
 
       <main className="relative z-10">
+        {/* Hero Section */}
         <Hero />
-        <About />
-        <Skills isDark={isDarkMode} />
-        <Projects isDark={isDarkMode} />
-        <Contact />
+        
+        {/* About Section with Enhanced Transitions */}
+        <motion.div
+          {...sectionFadeSlide}
+          className="relative"
+        >
+          <About />
+        </motion.div>
+        
+        {/* Skills Section with Enhanced Transitions */}
+        <motion.div
+          {...sectionFadeSlide}
+          className="relative"
+        >
+          <Skills isDark={isDarkMode} />
+        </motion.div>
+        
+        {/* Projects Section with Enhanced Transitions */}
+        <motion.div
+          {...sectionFadeSlide}
+          className="relative"
+        >
+          <Projects isDark={isDarkMode} />
+        </motion.div>
+        
+        {/* Contact Section with Enhanced Transitions */}
+        <motion.div
+          {...sectionFadeSlide}
+          className="relative"
+        >
+          <Contact />
+        </motion.div>
       </main>
 
+      {/* Enhanced Footer */}
       <motion.footer
         className="relative z-10 py-12 text-center border-t border-cyber-cyan/20 backdrop-blur-sm bg-dark-surface/50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.2 }}
       >
         <div className="absolute inset-0 cyber-grid opacity-5" />
-        <div className="relative z-10">
-          <p className="text-white/70 font-rajdhani text-lg mb-4">
+        <div className="relative z-10 max-w-7xl mx-auto px-4">
+          <motion.p 
+            className="text-white/70 font-rajdhani text-lg mb-6"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+          >
             © {new Date().getFullYear()} Alvin Lennarthsson. All rights reserved.
-          </p>
+          </motion.p>
+          
+          {/* Enhanced Status Indicators */}
+          <motion.div 
+            className="flex justify-center items-center space-x-8 mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 }}
+          >
+            <div className="flex items-center space-x-2">
+              <motion.div
+                className="w-3 h-3 bg-cyber-green rounded-full"
+                animate={{ 
+                  boxShadow: [
+                    '0 0 5px rgba(0, 255, 128, 0.5)',
+                    '0 0 20px rgba(0, 255, 128, 0.8)',
+                    '0 0 5px rgba(0, 255, 128, 0.5)'
+                  ]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <span className="text-cyber-green font-rajdhani text-sm">Available for work</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <motion.div
+                className="w-3 h-3 bg-cyber-cyan rounded-full"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.7, 1, 0.7]
+                }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+              <span className="text-cyber-cyan font-rajdhani text-sm">Open to opportunities</span>
+            </div>
+          </motion.div>
+          
+          {/* Animated Dots */}
           <div className="flex justify-center space-x-6">
             <motion.span
               className="w-2 h-2 bg-cyber-cyan rounded-full"

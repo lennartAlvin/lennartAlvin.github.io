@@ -1,6 +1,6 @@
-import { motion, useAnimation } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { fadeInUp, staggerContainer } from '@/utils/animations';
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 interface Skill {
   name: string;
@@ -25,119 +25,70 @@ interface SolarSystemProps {
 
 function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
-  const sunControls = useAnimation();
-  const sunTextControls = useAnimation();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), index * 200);
-    return () => clearTimeout(timer);
-  }, [index]);
+  const handleSkillHover = useCallback((skillName: string | null) => {
+    setHoveredSkill(skillName);
+  }, []);
 
-  useEffect(() => {
-    if (isPaused) {
-      sunControls.stop();
-      sunTextControls.stop();
-    } else {
-      sunControls.start({
-        rotate: 360,
-        transition: { duration: 25, repeat: Infinity, ease: "linear" }
-      });
-      sunTextControls.start({
-        rotate: -360,
-        transition: { duration: 25, repeat: Infinity, ease: "linear" }
-      });
-    }
-  }, [isPaused, sunControls, sunTextControls]);
-
-  const getOrbitRadius = (skillIndex: number) => {
+  const orbitRadii = useMemo(() => {
     const baseRadius = 140;
     const increment = 50;
-    return baseRadius + (skillIndex % 3) * increment;
-  };
+    return [0, 1, 2].map(i => baseRadius + i * increment);
+  }, []);
 
-  const getPlanetSize = (level: number) => {
-    const minSize = 40;
-    const maxSize = 60;
-    return minSize + (level / 100) * (maxSize - minSize);
-  };
+  const planetSizes = useMemo(() => {
+    return category.skills.map(skill => {
+      const minSize = 40;
+      const maxSize = 60;
+      return minSize + (skill.level / 100) * (maxSize - minSize);
+    });
+  }, [category.skills]);
 
   return (
     <motion.div
       className="relative flex items-center justify-center"
       style={{ minHeight: '500px', minWidth: '500px' }}
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: isVisible ? 1 : 0, scale: isVisible ? 1 : 0.8 }}
-      transition={{ duration: 0.8, delay: index * 0.2 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
     >
-      {/* Category Sun */}
-      <motion.div
-        className={`absolute z-20 w-24 h-24 rounded-full ${category.centerColor} border-4 border-white/30 flex items-center justify-center shadow-2xl`}
-        animate={sunControls}
-        initial={{ rotate: 0 }}
-        style={{
-          boxShadow: isPaused ? 
-            `0 0 30px ${category.centerColor.includes('cyan') ? 'rgba(0,240,255,0.6)' : 
-                       category.centerColor.includes('magenta') ? 'rgba(255,0,200,0.6)' :
-                       category.centerColor.includes('green') ? 'rgba(0,255,128,0.6)' :
-                       'rgba(161,0,255,0.6)'}` :
-            undefined
-        }}
-      >
-        <motion.span 
-          className="text-white font-orbitron font-bold text-xs text-center leading-tight"
-          animate={sunTextControls}
-          initial={{ rotate: 0 }}
-        >
-          {category.title.split(' ').map((word, i) => (
-            <div key={i}>{word}</div>
-          ))}
-        </motion.span>
-        
-        {/* Animated glow effect when not paused */}
-        {!isPaused && (
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            animate={{
-              boxShadow: [
-                `0 0 30px ${category.centerColor.includes('cyan') ? 'rgba(0,240,255,0.6)' : 
-                           category.centerColor.includes('magenta') ? 'rgba(255,0,200,0.6)' :
-                           category.centerColor.includes('green') ? 'rgba(0,255,128,0.6)' :
-                           'rgba(161,0,255,0.6)'}`,
-                `0 0 50px ${category.centerColor.includes('cyan') ? 'rgba(0,240,255,0.9)' : 
-                           category.centerColor.includes('magenta') ? 'rgba(255,0,200,0.9)' :
-                           category.centerColor.includes('green') ? 'rgba(0,255,128,0.9)' :
-                           'rgba(161,0,255,0.9)'}`,
-                `0 0 30px ${category.centerColor.includes('cyan') ? 'rgba(0,240,255,0.6)' : 
-                           category.centerColor.includes('magenta') ? 'rgba(255,0,200,0.6)' :
-                           category.centerColor.includes('green') ? 'rgba(0,255,128,0.6)' :
-                           'rgba(161,0,255,0.6)'}`
-              ]
-            }}
-            transition={{
-              boxShadow: { duration: 3, repeat: Infinity, ease: "easeInOut" }
-            }}
-          />
-        )}
-      </motion.div>
-
-      {/* Orbit Lines */}
-      {[0, 1, 2].map((orbitIndex) => (
+      {/* Orbit Lines - Static for better performance */}
+      {orbitRadii.map((radius, orbitIndex) => (
         <div
           key={orbitIndex}
           className={`absolute border border-dashed ${category.orbitColor} rounded-full opacity-30`}
           style={{
-            width: `${(getOrbitRadius(orbitIndex) * 2)}px`,
-            height: `${(getOrbitRadius(orbitIndex) * 2)}px`,
+            width: `${radius * 2}px`,
+            height: `${radius * 2}px`,
+            willChange: 'transform',
           }}
         />
       ))}
 
-      {/* Skill Planets */}
+      {/* Category Sun - CSS Animation */}
+      <div
+        className={`solar-sun-rotation absolute z-20 w-24 h-24 rounded-full ${category.centerColor} border-4 border-white/30 flex items-center justify-center`}
+        style={{
+          animationPlayState: isPaused ? 'paused' : 'running',
+          willChange: 'transform',
+          boxShadow: `0 0 30px ${getCategoryGlow(category.centerColor)}`,
+        }}
+      >
+        <span 
+          className="solar-sun-text-rotation text-white font-orbitron font-bold text-xs text-center leading-tight"
+          style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
+        >
+          {category.title.split(' ').map((word, i) => (
+            <div key={i}>{word}</div>
+          ))}
+        </span>
+      </div>
+
+      {/* Skill Planets - Optimized */}
       {category.skills.map((skill, skillIndex) => {
-        const orbitRadius = getOrbitRadius(skillIndex);
-        const planetSize = getPlanetSize(skill.level);
-        const orbitDuration = 20 + skillIndex * 7;
+        const orbitRadius = orbitRadii[skillIndex % 3];
+        const planetSize = planetSizes[skillIndex];
+        const orbitDuration = 20 + skillIndex * 5;
 
         return (
           <PlanetOrbit
@@ -148,7 +99,7 @@ function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
             orbitDuration={orbitDuration}
             isPaused={isPaused}
             hoveredSkill={hoveredSkill}
-            setHoveredSkill={setHoveredSkill}
+            onHover={handleSkillHover}
           />
         );
       })}
@@ -156,67 +107,63 @@ function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
   );
 }
 
-function PlanetOrbit({ skill, orbitRadius, planetSize, orbitDuration, isPaused, hoveredSkill, setHoveredSkill }: {
+const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, hoveredSkill, onHover }: {
   skill: Skill;
   orbitRadius: number;
   planetSize: number;
   orbitDuration: number;
   isPaused: boolean;
   hoveredSkill: string | null;
-  setHoveredSkill: (skill: string | null) => void;
-}) {
-  const orbitControls = useAnimation();
-  const planetControls = useAnimation();
+  onHover: (skill: string | null) => void;
+}) => {
+  const handleMouseEnter = useCallback(() => onHover(skill.name), [onHover, skill.name]);
+  const handleMouseLeave = useCallback(() => onHover(null), [onHover]);
 
-  useEffect(() => {
-    if (isPaused) {
-      orbitControls.stop();
-      planetControls.stop();
-    } else {
-      orbitControls.start({
-        rotate: 360,
-        transition: { duration: orbitDuration, repeat: Infinity, ease: "linear" }
-      });
-      planetControls.start({
-        rotate: -360,
-        transition: { duration: orbitDuration, repeat: Infinity, ease: "linear" }
-      });
-    }
-  }, [isPaused, orbitControls, planetControls, orbitDuration]);
+  // Get CSS class for orbit duration
+  const getOrbitClass = (duration: number) => {
+    if (duration <= 22) return 'solar-orbit-20s';
+    if (duration <= 27) return 'solar-orbit-25s';
+    if (duration <= 32) return 'solar-orbit-30s';
+    if (duration <= 37) return 'solar-orbit-35s';
+    if (duration <= 42) return 'solar-orbit-40s';
+    return 'solar-orbit-45s';
+  };
+
+  const getCounterOrbitClass = (duration: number) => {
+    if (duration <= 22) return 'solar-counter-orbit-20s';
+    if (duration <= 27) return 'solar-counter-orbit-25s';
+    if (duration <= 32) return 'solar-counter-orbit-30s';
+    if (duration <= 37) return 'solar-counter-orbit-35s';
+    if (duration <= 42) return 'solar-counter-orbit-40s';
+    return 'solar-counter-orbit-45s';
+  };
 
   return (
-    <motion.div
-      className="absolute z-10"
-      animate={orbitControls}
-      initial={{ rotate: 0 }}
+    <div
+      className={`absolute z-10 ${getOrbitClass(orbitDuration)}`}
       style={{
         width: `${orbitRadius * 2}px`,
         height: `${orbitRadius * 2}px`,
+        animationPlayState: isPaused ? 'paused' : 'running',
+        willChange: 'transform',
       }}
     >
-      <motion.div
-        className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+      <div
+        className={`absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group ${getCounterOrbitClass(orbitDuration)}`}
         style={{
           width: `${planetSize + 20}px`,
           height: `${planetSize + 30}px`,
+          animationPlayState: isPaused ? 'paused' : 'running',
         }}
-        whileHover={{ scale: 1.2, zIndex: 30 }}
-        onHoverStart={() => setHoveredSkill(skill.name)}
-        onHoverEnd={() => setHoveredSkill(null)}
-        animate={planetControls}
-        initial={{ rotate: 0 }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
         {/* Planet */}
-        <motion.div
-          className={`w-full h-2/3 ${skill.color} rounded-full border-3 border-white/40 flex items-center justify-center shadow-lg`}
+        <div
+          className={`solar-planet w-full h-2/3 ${skill.color} rounded-full border-3 border-white/40 flex items-center justify-center transition-all duration-300 hover:scale-110`}
           style={{
-            boxShadow: isPaused ? 
-              `0 0 15px ${skill.color.includes('cyan') ? 'rgba(0,240,255,0.6)' : 
-                         skill.color.includes('magenta') ? 'rgba(255,0,200,0.6)' :
-                         skill.color.includes('green') ? 'rgba(0,255,128,0.6)' :
-                         skill.color.includes('purple') ? 'rgba(161,0,255,0.6)' :
-                         'rgba(0,128,255,0.6)'}` :
-              undefined
+            boxShadow: `0 0 15px ${getSkillGlow(skill.color)}`,
+            willChange: 'transform, box-shadow',
           }}
         >
           {skill.icon && (
@@ -224,31 +171,7 @@ function PlanetOrbit({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
               {skill.icon}
             </span>
           )}
-          
-          {/* Animated glow effect when not paused */}
-          {!isPaused && (
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              animate={{
-                boxShadow: [
-                  `0 0 15px ${skill.color.includes('cyan') ? 'rgba(0,240,255,0.6)' : 
-                             skill.color.includes('magenta') ? 'rgba(255,0,200,0.6)' :
-                             skill.color.includes('green') ? 'rgba(0,255,128,0.6)' :
-                             skill.color.includes('purple') ? 'rgba(161,0,255,0.6)' :
-                             'rgba(0,128,255,0.6)'}`,
-                  `0 0 25px ${skill.color.includes('cyan') ? 'rgba(0,240,255,0.9)' : 
-                             skill.color.includes('magenta') ? 'rgba(255,0,200,0.9)' :
-                             skill.color.includes('green') ? 'rgba(0,255,128,0.9)' :
-                             skill.color.includes('purple') ? 'rgba(161,0,255,0.9)' :
-                             'rgba(0,128,255,0.9)'}`,
-                ]
-              }}
-              transition={{
-                boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-              }}
-            />
-          )}
-        </motion.div>
+        </div>
         
         {/* Skill Name Label */}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center">
@@ -260,15 +183,16 @@ function PlanetOrbit({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
           </div>
         </div>
         
-        {/* Enhanced Tooltip */}
+        {/* Optimized Tooltip */}
         {hoveredSkill === skill.name && (
           <motion.div
-            className="absolute top-full left-1/2 transform -translate-x-1/2 mt-4 p-4 rounded-xl bg-dark-card/95 border-2 border-cyber-cyan/50 backdrop-blur-lg min-w-max z-50 shadow-2xl"
-            initial={{ opacity: 0, y: -10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.9 }}
+            className="tooltip absolute top-full left-1/2 transform -translate-x-1/2 mt-4 p-4 rounded-xl bg-dark-card/95 border-2 border-cyber-cyan/50 backdrop-blur-lg min-w-max z-50"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
             style={{
-              boxShadow: '0 0 30px rgba(0, 240, 255, 0.4)'
+              boxShadow: '0 0 20px rgba(0, 240, 255, 0.3)',
             }}
           >
             <div className="text-center">
@@ -287,22 +211,36 @@ function PlanetOrbit({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
                   </div>
                 )}
               </div>
-              {/* Progress Bar in Tooltip */}
+              {/* Simple Progress Bar */}
               <div className="w-32 h-2 bg-dark-border/50 rounded-full overflow-hidden">
-                <motion.div
-                  className={`h-full ${skill.color} rounded-full`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${skill.level}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
+                <div
+                  className={`h-full ${skill.color} rounded-full transition-all duration-1000 ease-out`}
+                  style={{ width: `${skill.level}%` }}
                 />
               </div>
             </div>
           </motion.div>
         )}
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
-}
+};
+
+// Utility functions for glow colors
+const getCategoryGlow = (colorClass: string): string => {
+  if (colorClass.includes('cyan')) return 'rgba(0,240,255,0.6)';
+  if (colorClass.includes('magenta')) return 'rgba(255,0,200,0.6)';
+  if (colorClass.includes('green')) return 'rgba(0,255,128,0.6)';
+  return 'rgba(161,0,255,0.6)';
+};
+
+const getSkillGlow = (colorClass: string): string => {
+  if (colorClass.includes('cyan')) return 'rgba(0,240,255,0.4)';
+  if (colorClass.includes('magenta')) return 'rgba(255,0,200,0.4)';
+  if (colorClass.includes('green')) return 'rgba(0,255,128,0.4)';
+  if (colorClass.includes('purple')) return 'rgba(161,0,255,0.4)';
+  return 'rgba(0,128,255,0.4)';
+};
 
 interface SkillsProps {
   isDark: boolean;
@@ -352,6 +290,10 @@ export default function Skills({ isDark }: SkillsProps) {
     },
   ];
 
+  const togglePause = useCallback(() => {
+    setIsPaused(prev => !prev);
+  }, []);
+
   return (
     <motion.section
       className="py-20 relative max-w-7xl mx-auto px-4"
@@ -372,7 +314,7 @@ export default function Skills({ isDark }: SkillsProps) {
             Explore my technical universe where skills orbit around expertise domains
           </p>
           <p className="mt-3 text-sm text-cyber-cyan font-rajdhani">
-            Planet size indicates proficiency • Hover for detailed stats • Watch them orbit! • Use pause button to stop motion
+            Planet size indicates proficiency • Hover for detailed stats • Watch them orbit!
           </p>
         </motion.div>
 
@@ -382,9 +324,9 @@ export default function Skills({ isDark }: SkillsProps) {
           variants={fadeInUp}
         >
           <motion.button
-            onClick={() => setIsPaused(!isPaused)}
+            onClick={togglePause}
             className="px-6 py-3 rounded-full bg-gradient-to-r from-cyber-cyan/20 to-cyber-magenta/20 border border-cyber-cyan/50 text-cyber-cyan font-rajdhani font-bold text-lg hover:from-cyber-cyan/30 hover:to-cyber-magenta/30 transition-all duration-300 backdrop-blur-sm"
-            whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(0, 240, 255, 0.5)" }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             {isPaused ? "▶️ Resume Orbits" : "⏸️ Pause Orbits"}
@@ -402,52 +344,40 @@ export default function Skills({ isDark }: SkillsProps) {
           ))}
         </div>
 
-        {/* Legend */}
+        {/* Simplified Legend */}
         <motion.div
           className="mt-16 text-center"
           variants={fadeInUp}
         >
-          <div className="max-w-5xl mx-auto p-8 rounded-2xl backdrop-blur-lg bg-gradient-to-br from-dark-card/50 via-dark-surface/30 to-dark-card/50 border border-cyber-cyan/20">
-            <h3 className="text-2xl font-bold font-orbitron mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyber-green to-cyber-cyan">
-              How to Navigate the Tech Universe
+          <div className="max-w-4xl mx-auto p-6 rounded-2xl backdrop-blur-lg bg-gradient-to-br from-dark-card/50 to-dark-surface/30 border border-cyber-cyan/20">
+            <h3 className="text-xl font-bold font-orbitron mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyber-green to-cyber-cyan">
+              Navigation Guide
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm font-rajdhani">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-cyber-cyan to-cyber-blue rounded-full border-2 border-white/20 flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">⭐</span>
-                </div>
-                <div>
-                  <div className="text-cyber-cyan font-bold text-base">Central Star</div>
-                  <div className="text-white/70">Technology Category</div>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-rajdhani">
+              <div className="text-center">
+                <div className="w-8 h-8 bg-gradient-to-br from-cyber-cyan to-cyber-blue rounded-full mx-auto mb-2"></div>
+                <div className="text-cyber-cyan font-bold">Central Star</div>
+                <div className="text-white/70">Category</div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-cyber-magenta to-cyber-pink rounded-full border-2 border-white/20 flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">🪐</span>
-                </div>
-                <div>
-                  <div className="text-cyber-magenta font-bold text-base">Orbiting Planet</div>
-                  <div className="text-white/70">Individual Skill</div>
-                </div>
+              <div className="text-center">
+                <div className="w-6 h-6 bg-gradient-to-br from-cyber-magenta to-cyber-pink rounded-full mx-auto mb-2"></div>
+                <div className="text-cyber-magenta font-bold">Planet</div>
+                <div className="text-white/70">Skill</div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="flex space-x-1">
-                  <div className="w-4 h-4 bg-gradient-to-br from-cyber-green to-cyber-cyan rounded-full border border-white/20"></div>
-                  <div className="w-6 h-6 bg-gradient-to-br from-cyber-green to-cyber-cyan rounded-full border border-white/20"></div>
+              <div className="text-center">
+                <div className="flex justify-center space-x-1 mb-2">
+                  <div className="w-3 h-3 bg-cyber-green rounded-full"></div>
+                  <div className="w-5 h-5 bg-cyber-green rounded-full"></div>
                 </div>
-                <div>
-                  <div className="text-cyber-green font-bold text-base">Planet Size</div>
-                  <div className="text-white/70">Proficiency Level</div>
-                </div>
+                <div className="text-cyber-green font-bold">Size</div>
+                <div className="text-white/70">Proficiency</div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-dark-card/80 rounded border border-cyber-cyan/30 flex items-center justify-center">
-                  <span className="text-cyber-cyan font-bold text-xs">💬</span>
+              <div className="text-center">
+                <div className="w-6 h-6 bg-dark-card border border-cyber-cyan/30 rounded mx-auto mb-2 flex items-center justify-center">
+                  <span className="text-cyber-cyan text-xs">💬</span>
                 </div>
-                <div>
-                  <div className="text-cyber-cyan font-bold text-base">Hover Details</div>
-                  <div className="text-white/70">Experience & Stats</div>
-                </div>
+                <div className="text-cyber-cyan font-bold">Hover</div>
+                <div className="text-white/70">Details</div>
               </div>
             </div>
           </div>
