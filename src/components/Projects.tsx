@@ -23,7 +23,7 @@ function ProjectCard({ project, isDark, onOpen }: ProjectCardProps) {
   return (
     <motion.div
       onClick={onOpen}
-      className={`masonry-item cursor-pointer p-8 rounded-xl ${isDark ? 'bg-gray-800/90' : 'bg-white/90'} shadow-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} backdrop-blur-sm`}
+      className={`masonry-item cursor-pointer p-8 rounded-xl ${isDark ? 'bg-[#1e1e2f]/90' : 'bg-white/90'} shadow-lg border ${isDark ? 'border-[#121212]' : 'border-gray-200'} backdrop-blur-sm`}
       variants={{
         initial: { y: 20, opacity: 0 },
         animate: { y: 0, opacity: 1 },
@@ -37,7 +37,7 @@ function ProjectCard({ project, isDark, onOpen }: ProjectCardProps) {
       transition={{ duration: 0.2 }}
     >
       <h3 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">{title}</h3>
-      <p className="text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">{description}</p>
+      <p className="text-gray-600 dark:text-[rgba(255,255,255,0.8)] mb-6 leading-relaxed">{description}</p>
       {impact && (
         <div className="mb-6 flex items-center space-x-2">
           <span className="w-2 h-2 rounded-full bg-green-500"></span>
@@ -48,7 +48,7 @@ function ProjectCard({ project, isDark, onOpen }: ProjectCardProps) {
         {technologies.map((tech) => (
           <span
             key={tech}
-            className="px-3 py-1 rounded-full text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 font-medium"
+            className="px-3 py-1 rounded-full text-sm bg-[#ff00c8]/10 dark:bg-[#ff00c8]/30 text-[#ff0059] dark:text-[#ff00c8] font-medium"
           >
             {tech}
           </span>
@@ -58,7 +58,7 @@ function ProjectCard({ project, isDark, onOpen }: ProjectCardProps) {
         href={githubUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
+        className="inline-flex items-center space-x-2 text-[#00e0d1] dark:text-[#00f0ff] hover:text-[#00e0d1] dark:hover:text-[#00f0ff] font-medium"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
@@ -118,7 +118,7 @@ export default function Projects({ isDark }: ProjectsProps) {
               href={active.githubUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 text-cyan-400 hover:underline"
+              className="inline-flex items-center space-x-2 text-[#00f0ff] hover:underline"
             >
               <FaGithub className="w-5 h-5" />
               <span>View on GitHub</span>
