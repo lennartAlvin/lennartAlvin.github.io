@@ -170,7 +170,7 @@ const projects: Project[] = [
     description: 'A cutting-edge portfolio showcasing modern web development with futuristic design, advanced animations, and interactive elements. Built with Next.js and enhanced with custom cursor effects and particle backgrounds.',
     technologies: ['Next.js', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'Canvas API'],
     githubUrl: 'https://github.com/lennartAlvin/Portfolio',
-    liveUrl: 'https://danielspatzek.com',
+    liveUrl: '', //TODO: Add live url
     impact: 'Demonstrates advanced frontend skills with 95+ performance score',
     year: '2024',
     category: 'Frontend',
@@ -180,7 +180,7 @@ const projects: Project[] = [
     description: 'Full-stack e-commerce solution with real-time inventory management, secure payment processing, and admin dashboard. Features advanced search, filtering, and recommendation algorithms.',
     technologies: ['React', 'Node.js', 'MongoDB', 'Stripe API', 'Redux'],
     githubUrl: 'https://github.com/lennartAlvin/ecommerce-platform',
-    liveUrl: 'https://demo-ecommerce.com',
+    liveUrl: '', //TODO: Add live url
     impact: 'Handles 10k+ transactions monthly with 99.9% uptime',
     year: '2024',
     category: 'Full-Stack',
