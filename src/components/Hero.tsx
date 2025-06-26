@@ -53,10 +53,10 @@ export default function Hero() {
                 clearInterval(deleteInterval);
                 setCurrentRole((prev) => (prev + 1) % roles.length);
               }
-            }, isMobile ? 30 : 50); // Faster on mobile
-          }, isMobile ? 1500 : 2000); // Shorter pause on mobile
+            }, isMobile ? 100 : 120); // Much slower deletion
+          }, isMobile ? 3000 : 4000); // Much longer pause to read the role
         }
-      }, isMobile ? 80 : 100); // Faster typing on mobile
+      }, isMobile ? 150 : 120); // Much slower typing
     };
 
     typeRole();

@@ -30,10 +30,16 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Mobile-specific optimizations */
+  /* Critical Mobile Performance Optimizations */
   @media (max-width: 768px) {
     html {
       font-size: 14px;
+      /* Disable smooth scrolling on mobile to prevent conflicts */
+      scroll-behavior: auto;
+      /* Prevent iOS rubber band scrolling */
+      overscroll-behavior: none;
+      /* Optimize for touch scrolling */
+      -webkit-overflow-scrolling: touch;
     }
     
     body {
@@ -44,6 +50,20 @@
       -moz-user-select: none;
       -ms-user-select: none;
       user-select: none;
+      /* Prevent bounce scrolling on iOS */
+      overscroll-behavior: none;
+      /* Optimize scrolling performance */
+      -webkit-overflow-scrolling: touch;
+      /* Disable momentum scrolling that can cause jank */
+      -webkit-overflow-scrolling: auto;
+      /* Force hardware acceleration */
+      transform: translateZ(0);
+      will-change: scroll-position;
+    }
+
+    /* Prevent iOS zoom on input focus */
+    input, textarea, select {
+      font-size: 16px !important;
     }
 
     /* Better touch targets */
@@ -51,6 +71,21 @@
       min-height: 44px;
       min-width: 44px;
       -webkit-tap-highlight-color: rgba(0, 240, 255, 0.2);
+      /* Prevent iOS button styling */
+      -webkit-appearance: none;
+      border-radius: 0;
+    }
+
+    /* Optimize all animated elements for mobile */
+    * {
+      /* Force GPU acceleration for better animation performance */
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      /* Optimize animations */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-perspective: 1000;
+      perspective: 1000;
     }
 
     /* Disable animations for users who prefer reduced motion */
@@ -67,11 +102,25 @@
       width: 0px;
       background: transparent;
     }
+
+    /* Disable overscroll glow effect */
+    html {
+      -webkit-overscroll-behavior: none;
+      overscroll-behavior: none;
+    }
+
+    /* Optimize transforms for mobile */
+    .transform {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+    }
   }
 
-  /* Touch-friendly scrolling */
+  /* Enhanced touch-friendly scrolling */
   * {
     -webkit-overflow-scrolling: touch;
+    /* Prevent momentum scrolling issues */
+    overscroll-behavior: none;
   }
 
   /* Better text selection */
@@ -83,6 +132,17 @@
   ::-moz-selection {
     background-color: rgba(0, 240, 255, 0.3);
     color: #ffffff;
+  }
+
+  /* Optimize for 60fps scrolling */
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Prevent layout thrashing */
+  main {
+    contain: layout style;
   }
 }
 
@@ -129,74 +189,136 @@
     100% { background-position: 0% 50%; }
   }
 
-  /* Solar System Animations */
+  /* Optimized Solar System Animations */
   .solar-sun-rotation {
     animation: solar-spin 25s linear infinite;
+    /* Optimize for mobile performance */
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-sun-text-rotation {
     animation: solar-spin-reverse 25s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
-  /* Test animation to verify it's working */
+  /* Mobile-optimized orbit classes */
+  @media (max-width: 768px) {
+    .solar-sun-rotation,
+    .solar-sun-text-rotation {
+      /* Reduce animation complexity on mobile */
+      animation-duration: 35s;
+    }
+  }
+  
   .solar-test-spin {
     animation: solar-spin 2s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-orbit-20s {
     animation: solar-spin 20s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-orbit-25s {
     animation: solar-spin 25s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-orbit-30s {
     animation: solar-spin 30s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-orbit-35s {
     animation: solar-spin 35s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-orbit-40s {
     animation: solar-spin 40s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-orbit-45s {
     animation: solar-spin 45s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-orbit-50s {
     animation: solar-spin 50s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-counter-orbit-20s {
     animation: solar-spin-reverse 20s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-counter-orbit-25s {
     animation: solar-spin-reverse 25s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-counter-orbit-30s {
     animation: solar-spin-reverse 30s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-counter-orbit-35s {
     animation: solar-spin-reverse 35s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-counter-orbit-40s {
     animation: solar-spin-reverse 40s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
   
   .solar-counter-orbit-45s {
     animation: solar-spin-reverse 45s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   .solar-counter-orbit-50s {
     animation: solar-spin-reverse 50s linear infinite;
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  /* Mobile-optimized orbit animations */
+  @media (max-width: 768px) {
+    .solar-orbit-20s { animation-duration: 30s; }
+    .solar-orbit-25s { animation-duration: 35s; }
+    .solar-orbit-30s { animation-duration: 40s; }
+    .solar-orbit-35s { animation-duration: 45s; }
+    .solar-orbit-40s { animation-duration: 50s; }
+    .solar-orbit-45s { animation-duration: 55s; }
+    .solar-orbit-50s { animation-duration: 60s; }
+    
+    .solar-counter-orbit-20s { animation-duration: 30s; }
+    .solar-counter-orbit-25s { animation-duration: 35s; }
+    .solar-counter-orbit-30s { animation-duration: 40s; }
+    .solar-counter-orbit-35s { animation-duration: 45s; }
+    .solar-counter-orbit-40s { animation-duration: 50s; }
+    .solar-counter-orbit-45s { animation-duration: 55s; }
+    .solar-counter-orbit-50s { animation-duration: 60s; }
   }
 
   @keyframes solar-spin {
@@ -230,7 +352,7 @@
     }
   }
 
-  /* Mobile-specific grid */
+  /* Mobile-specific optimizations */
   .mobile-grid {
     opacity: 0.05 !important;
   }
@@ -257,7 +379,7 @@
     border-radius: 50%;
   }
 
-  /* Performance improvements for mobile */
+  /* Enhanced mobile performance optimizations */
   @media (max-width: 768px) {
     .parallax-mobile {
       transform: none !important;
@@ -268,9 +390,22 @@
       transition: none !important;
     }
 
-    /* Reduce blur effects on mobile for better performance */
+    /* Optimize blur effects for mobile performance */
     .mobile-reduce-blur {
-      filter: blur(10px) !important;
+      filter: blur(8px) !important;
+    }
+
+    /* Disable heavy animations on mobile */
+    .mobile-disable-animation {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    /* Optimize transforms for mobile */
+    .mobile-optimize-transform {
+      transform: translateZ(0);
+      will-change: transform;
+      backface-visibility: hidden;
     }
   }
 }
@@ -327,6 +462,13 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     animation: holographic 3s ease infinite;
+  }
+
+  /* Mobile-optimized holographic text */
+  @media (max-width: 768px) {
+    .text-holographic {
+      animation-duration: 5s;
+    }
   }
 
   .custom-cursor {
@@ -386,24 +528,56 @@
     margin-right: env(safe-area-inset-right);
   }
 
-  /* Touch manipulation */
+  /* Enhanced touch manipulation */
   .touch-manipulation {
     touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .touch-pan-x {
     touch-action: pan-x;
+    overscroll-behavior-x: none;
   }
 
   .touch-pan-y {
     touch-action: pan-y;
+    overscroll-behavior-y: none;
   }
 
   .touch-none {
     touch-action: none;
+    overscroll-behavior: none;
+  }
+
+  /* Smooth scrolling utilities */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  @media (max-width: 768px) {
+    .scroll-smooth {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* Performance optimizations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  .mobile-optimized {
+    @media (max-width: 768px) {
+      transform: translateZ(0);
+      will-change: auto;
+      backface-visibility: hidden;
+    }
   }
 }
 
+/* Optimized particle background */
 .particles-background {
   position: fixed;
   top: 0;
@@ -412,6 +586,9 @@
   height: 100%;
   pointer-events: none;
   z-index: -1;
+  /* Optimize for mobile */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .particle {
@@ -422,6 +599,9 @@
   border-radius: 50%;
   opacity: 0.3;
   animation: float 6s ease-in-out infinite;
+  /* Optimize for mobile */
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 .particle:nth-child(odd) {
@@ -432,4 +612,20 @@
 .particle:nth-child(even) {
   animation-delay: -4s;
   animation-duration: 8s;
+}
+
+/* Mobile-specific particle optimizations */
+@media (max-width: 768px) {
+  .particle {
+    animation-duration: 8s;
+    opacity: 0.2;
+  }
+  
+  .particle:nth-child(odd) {
+    animation-duration: 6s;
+  }
+  
+  .particle:nth-child(even) {
+    animation-duration: 10s;
+  }
 }

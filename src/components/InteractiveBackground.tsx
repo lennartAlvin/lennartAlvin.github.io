@@ -33,26 +33,35 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
   const mouseStopTimeout = useRef<NodeJS.Timeout>();
   const lastMouseUpdate = useRef(0);
   
-  // Ultra-smooth mouse tracking with more aggressive damping
+  // Ultra-smooth mouse tracking with mobile-optimized damping
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const springX = useSpring(mouseX, { stiffness: 50, damping: 30, mass: 0.5 });
-  const springY = useSpring(mouseY, { stiffness: 50, damping: 30, mass: 0.5 });
+  const springX = useSpring(mouseX, { 
+    stiffness: isMobile ? 30 : 50, 
+    damping: isMobile ? 40 : 30, 
+    mass: isMobile ? 0.8 : 0.5 
+  });
+  const springY = useSpring(mouseY, { 
+    stiffness: isMobile ? 30 : 50, 
+    damping: isMobile ? 40 : 30, 
+    mass: isMobile ? 0.8 : 0.5 
+  });
 
-  // Mobile detection
+  // Enhanced mobile detection
   useEffect(() => {
     const checkMobile = () => {
       if (typeof window !== 'undefined') {
         const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                               window.innerWidth < 768 ||
-                              ('ontouchstart' in window);
-        setIsMobile(isMobileDevice);
+                              ('ontouchstart' in window) ||
+                              (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+        setIsMobile(Boolean(isMobileDevice));
       }
     };
     
     checkMobile();
     if (typeof window !== 'undefined') {
-      window.addEventListener('resize', checkMobile);
+      window.addEventListener('resize', checkMobile, { passive: true });
       return () => window.removeEventListener('resize', checkMobile);
     }
   }, []);
@@ -69,26 +78,31 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
 
     updateWindowSize();
     if (typeof window !== 'undefined') {
-      window.addEventListener('resize', updateWindowSize);
-      return () => window.removeEventListener('resize', updateWindowSize);
+      const debouncedResize = debounce(updateWindowSize, 150);
+      window.addEventListener('resize', debouncedResize, { passive: true });
+      return () => window.removeEventListener('resize', debouncedResize);
     }
   }, []);
 
-  // Ultra-throttled mouse tracking for maximum smoothness
+  // Heavily throttled mouse tracking for mobile performance
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isMobile) return; // Skip on mobile
+    if (isMobile) return; // Completely skip on mobile
     
     const now = performance.now();
-    if (now - lastMouseUpdate.current < 32) return; // Limit to 30fps max
+    const throttleTime = isMobile ? 100 : 32; // Much more aggressive throttling
+    if (now - lastMouseUpdate.current < throttleTime) return;
     lastMouseUpdate.current = now;
     
     const x = e.clientX;
     const y = e.clientY;
     
-    setMousePosition({ x, y });
-    mouseX.set(x);
-    mouseY.set(y);
-    setIsMouseMoving(true);
+    // Use requestAnimationFrame for smooth updates
+    requestAnimationFrame(() => {
+      setMousePosition({ x, y });
+      mouseX.set(x);
+      mouseY.set(y);
+      setIsMouseMoving(true);
+    });
 
     if (mouseStopTimeout.current) {
       clearTimeout(mouseStopTimeout.current);
@@ -96,10 +110,10 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
 
     mouseStopTimeout.current = setTimeout(() => {
       setIsMouseMoving(false);
-    }, 500);
+    }, 800);
   }, [mouseX, mouseY, isMobile]);
 
-  // Touch event handlers for mobile
+  // Simplified touch handlers with reduced frequency
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (!isMobile) return;
     
@@ -107,40 +121,41 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     const x = touch.clientX;
     const y = touch.clientY;
     
-    setMousePosition({ x, y });
-    mouseX.set(x);
-    mouseY.set(y);
+    // Center the interaction on mobile for better performance
+    const centerX = windowSize.width / 2;
+    const centerY = windowSize.height / 2;
+    
+    setMousePosition({ x: centerX, y: centerY });
+    mouseX.set(centerX);
+    mouseY.set(centerY);
     setIsMouseMoving(true);
-  }, [mouseX, mouseY, isMobile]);
+  }, [mouseX, mouseY, isMobile, windowSize]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
     if (!isMobile) return;
     
     const now = performance.now();
-    if (now - lastMouseUpdate.current < 50) return; // Less frequent updates on mobile
+    if (now - lastMouseUpdate.current < 200) return; // Very conservative throttling
     lastMouseUpdate.current = now;
     
-    const touch = e.touches[0];
-    const x = touch.clientX;
-    const y = touch.clientY;
+    // Keep centered for performance
+    const centerX = windowSize.width / 2;
+    const centerY = windowSize.height / 2;
     
-    setMousePosition({ x, y });
-    mouseX.set(x);
-    mouseY.set(y);
-  }, [mouseX, mouseY, isMobile]);
+    setMousePosition({ x: centerX, y: centerY });
+  }, [isMobile, windowSize]);
 
   const handleTouchEnd = useCallback(() => {
     if (!isMobile) return;
     
     setTimeout(() => {
       setIsMouseMoving(false);
-    }, 300);
+    }, 400);
   }, [isMobile]);
 
-  // Simplified click handler with even more restrictive ripple limits
+  // Minimal click/tap handlers
   const handleClick = useCallback((e: MouseEvent) => {
-    const maxRipples = isMobile ? 1 : 2; // Fewer ripples on mobile
-    if (ripples.length >= maxRipples) return;
+    if (isMobile || ripples.length >= 1) return; // Single ripple max on mobile
     
     const newRipple: Ripple = {
       id: Date.now(),
@@ -153,18 +168,19 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     
     setTimeout(() => {
       setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id));
-    }, isMobile ? 800 : 1000); // Shorter duration on mobile
+    }, 600); // Shorter duration
   }, [ripples.length, isMobile]);
 
-  // Touch tap handler
   const handleTouchTap = useCallback((e: TouchEvent) => {
     if (!isMobile || ripples.length >= 1) return;
     
-    const touch = e.changedTouches[0];
+    const centerX = windowSize.width / 2;
+    const centerY = windowSize.height / 2;
+    
     const newRipple: Ripple = {
       id: Date.now(),
-      x: touch.clientX,
-      y: touch.clientY,
+      x: centerX,
+      y: centerY,
       timestamp: Date.now(),
     };
     
@@ -172,23 +188,22 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     
     setTimeout(() => {
       setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id));
-    }, 800);
-  }, [ripples.length, isMobile]);
+    }, 500);
+  }, [ripples.length, isMobile, windowSize]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Mouse events (desktop only)
+      // Desktop-only mouse events
       if (!isMobile) {
         window.addEventListener('mousemove', handleMouseMove, { passive: true });
         window.addEventListener('click', handleClick, { passive: true });
       }
       
-      // Touch events (mobile only)
+      // Mobile-only touch events with reduced functionality
       if (isMobile) {
         window.addEventListener('touchstart', handleTouchStart, { passive: true });
-        window.addEventListener('touchmove', handleTouchMove, { passive: true });
         window.addEventListener('touchend', handleTouchEnd, { passive: true });
-        window.addEventListener('touchend', handleTouchTap, { passive: true });
+        // Remove touchmove and tap handlers for better performance
       }
       
       return () => {
@@ -203,46 +218,66 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
         }
       };
     }
-  }, [handleMouseMove, handleClick, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchTap, isMobile]);
+  }, [handleMouseMove, handleClick, handleTouchStart, handleTouchEnd, isMobile]);
 
-  // Extremely simplified gradient that updates less frequently
-  const getDynamicGradient = () => {
-    if (!windowSize.width || !windowSize.height) return 'transparent';
+  // Simplified gradient with caching
+  const getDynamicGradient = useCallback(() => {
+    if (!windowSize.width || !windowSize.height || isMobile) {
+      // Static gradient for mobile
+      return 'radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.02) 0%, transparent 60%)';
+    }
     
-    const xPercent = Math.round((mousePosition.x / windowSize.width) * 10) * 10; // Round to reduce updates
-    const yPercent = Math.round((mousePosition.y / windowSize.height) * 10) * 10;
-    const intensity = isMouseMoving ? (isMobile ? 0.04 : 0.08) : 0.03; // Reduced intensity on mobile
+    const xPercent = Math.round((mousePosition.x / windowSize.width) * 5) * 20; // Less granular
+    const yPercent = Math.round((mousePosition.y / windowSize.height) * 5) * 20;
+    const intensity = isMouseMoving ? 0.06 : 0.02;
     
     return `radial-gradient(circle at ${xPercent}% ${yPercent}%, 
       rgba(0, 240, 255, ${intensity}) 0%, 
-      rgba(161, 0, 255, ${intensity * 0.3}) 30%, 
-      transparent 60%)`;
-  };
+      rgba(161, 0, 255, ${intensity * 0.2}) 40%, 
+      transparent 70%)`;
+  }, [mousePosition, windowSize, isMouseMoving, isMobile]);
 
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+      className={`fixed inset-0 pointer-events-none z-0 overflow-hidden ${isMobile ? 'mobile-optimized' : ''}`}
     >
-      {/* Simplified Dynamic Gradient - Less frequent updates */}
+      {/* Ultra-simplified gradient for mobile */}
       <div
-        className="absolute inset-0 transition-all duration-700 ease-out"
+        className={`absolute inset-0 transition-all ${isMobile ? 'duration-1000' : 'duration-700'} ease-out`}
         style={{
           background: getDynamicGradient(),
+          transform: 'translateZ(0)', // Force GPU acceleration
         }}
       />
 
-      {/* Single Magnetic Orb - Reduced size on mobile */}
-      <MagneticOrb 
-        mouseX={springX} 
-        mouseY={springY} 
-        size={isMobile ? 150 : 250}
-        color={isMobile ? "rgba(0, 240, 255, 0.02)" : "rgba(0, 240, 255, 0.04)"}
-        isMoving={isMouseMoving}
-        isMobile={isMobile}
-      />
+      {/* Magnetic Orb - Heavily optimized for mobile */}
+      {!isMobile && (
+        <MagneticOrb 
+          mouseX={springX} 
+          mouseY={springY} 
+          size={200}
+          color="rgba(0, 240, 255, 0.03)"
+          isMoving={isMouseMoving}
+          isMobile={isMobile}
+        />
+      )}
 
-      {/* Minimal Particle System - Disabled on mobile for performance */}
+      {/* Mobile-optimized static orb */}
+      {isMobile && (
+        <div
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none mobile-optimized"
+          style={{
+            width: 120,
+            height: 120,
+            background: 'radial-gradient(circle, rgba(0, 240, 255, 0.01) 0%, transparent 70%)',
+            filter: 'blur(15px)',
+            transform: 'translate(-50%, -50%) translateZ(0)',
+          }}
+        />
+      )}
+
+      {/* Particle system - Desktop only */}
       {!isMobile && isMouseMoving && (
         <MinimalParticleSwarm 
           mousePosition={mousePosition} 
@@ -250,29 +285,30 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
         />
       )}
 
-      {/* Simplified Grid - Static */}
+      {/* Simplified grid - Static and lightweight */}
       <StaticGrid isMobile={isMobile} />
 
-      {/* Minimal Ripple Effects */}
+      {/* Minimal ripples */}
       {ripples.map((ripple) => (
         <motion.div
           key={ripple.id}
-          className="absolute pointer-events-none"
+          className="absolute pointer-events-none mobile-optimized"
           style={{
             left: ripple.x,
             top: ripple.y,
-            transform: 'translate(-50%, -50%)',
+            transform: 'translate(-50%, -50%) translateZ(0)',
+            willChange: 'transform, opacity',
           }}
-          initial={{ scale: 0, opacity: 0.4 }}
-          animate={{ scale: isMobile ? 1.5 : 2, opacity: 0 }}
+          initial={{ scale: 0, opacity: 0.3 }}
+          animate={{ scale: isMobile ? 1.2 : 1.8, opacity: 0 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: isMobile ? 0.8 : 1, ease: "easeOut" }}
+          transition={{ duration: isMobile ? 0.5 : 0.8, ease: "easeOut" }}
         >
-          <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-full border border-cyber-cyan/30`} />
+          <div className={`${isMobile ? 'w-4 h-4' : 'w-6 h-6'} rounded-full border border-cyber-cyan/20`} />
         </motion.div>
       ))}
 
-      {/* Ultra-minimal cursor trail - Desktop only */}
+      {/* Cursor trail - Desktop only */}
       {!isMobile && isMouseMoving && (
         <MinimalCursorTrail mouseX={mousePosition.x} mouseY={mousePosition.y} />
       )}
@@ -280,7 +316,7 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
   );
 }
 
-// Simplified Magnetic Orb - Single orb with minimal animation
+// Optimized Magnetic Orb
 function MagneticOrb({ 
   mouseX, 
   mouseY, 
@@ -298,147 +334,124 @@ function MagneticOrb({
 }) {
   return (
     <motion.div
-      className="absolute rounded-full pointer-events-none"
+      className="absolute rounded-full pointer-events-none gpu-accelerated"
       style={{
         width: size,
         height: size,
         background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        x: isMobile ? '50%' : mouseX, // Center on mobile
-        y: isMobile ? '50%' : mouseY,
+        x: mouseX,
+        y: mouseY,
         translateX: `-50%`,
         translateY: `-50%`,
-        filter: isMobile ? 'blur(20px)' : 'blur(30px)', // Less blur on mobile
+        filter: 'blur(25px)',
+        transform: 'translateZ(0)',
+        willChange: 'transform, opacity',
       }}
       animate={{
-        scale: isMoving ? (isMobile ? 1.05 : 1.1) : 1,
-        opacity: isMoving ? (isMobile ? 0.4 : 0.6) : (isMobile ? 0.2 : 0.3),
+        scale: isMoving ? 1.05 : 1,
+        opacity: isMoving ? 0.5 : 0.2,
       }}
       transition={{ 
-        duration: isMobile ? 1.5 : 2, 
+        duration: 1.8, 
         ease: "easeOut" 
       }}
     />
   );
 }
 
-// Minimal Particle System - Only 4 particles
+// Ultra-minimal particle system
 function MinimalParticleSwarm({ mousePosition, windowSize }: { 
   mousePosition: { x: number; y: number }; 
   windowSize: { width: number; height: number };
 }) {
-  const [particles, setParticles] = useState<Array<{id: number, x: number, y: number}>>([]);
-
-  useEffect(() => {
-    const particleCount = 4; // Ultra minimal
-    const newParticles = [];
-
-    for (let i = 0; i < particleCount; i++) {
-      newParticles.push({
-        id: i,
-        x: Math.random() * windowSize.width,
-        y: Math.random() * windowSize.height,
-      });
-    }
-
-    setParticles(newParticles);
-  }, [windowSize]);
-
-  useEffect(() => {
-    const animateParticles = () => {
-      setParticles(prevParticles => 
-        prevParticles.map(particle => {
-          const dx = mousePosition.x - particle.x;
-          const dy = mousePosition.y - particle.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          
-          if (distance < 100) {
-            const pullStrength = 0.02; // Very gentle pull
-            particle.x += dx * pullStrength;
-            particle.y += dy * pullStrength;
-          }
-
-          return particle;
-        })
-      );
-    };
-
-    const interval = setInterval(animateParticles, 50); // 20fps
-    return () => clearInterval(interval);
-  }, [mousePosition]);
+  const particles = Array.from({ length: 3 }, (_, i) => ({ // Reduced from 6 to 3
+    id: i,
+    offset: i * 120,
+  }));
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      {particles.map(particle => (
-        <div
-          key={particle.id}
-          className="absolute w-1 h-1 rounded-full bg-cyber-cyan/40"
-          style={{
-            left: particle.x,
-            top: particle.y,
-            transform: 'translate(-50%, -50%)',
-            boxShadow: '0 0 4px rgba(0, 240, 255, 0.4)',
-          }}
-        />
-      ))}
-    </div>
+    <>
+      {particles.map((particle) => {
+        const angle = (particle.offset * Math.PI) / 180;
+        const radius = 40;
+        const x = mousePosition.x + Math.cos(angle) * radius;
+        const y = mousePosition.y + Math.sin(angle) * radius;
+
+        return (
+          <motion.div
+            key={particle.id}
+            className="absolute w-1 h-1 bg-cyber-cyan/40 rounded-full pointer-events-none gpu-accelerated"
+            style={{
+              left: x,
+              top: y,
+              transform: 'translateZ(0)',
+              willChange: 'transform',
+            }}
+            animate={{
+              scale: [0.5, 1, 0.5],
+              opacity: [0.2, 0.6, 0.2],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              delay: particle.id * 0.2,
+              ease: "easeInOut"
+            }}
+          />
+        );
+      })}
+    </>
   );
 }
 
-// Static Grid - No animations
+// Static grid with mobile optimization
 function StaticGrid({ isMobile }: { isMobile: boolean }) {
   return (
-    <div className={`absolute inset-0 opacity-10 pointer-events-none ${isMobile ? 'mobile-grid' : ''}`}>
-      <svg width="100%" height="100%">
-        <defs>
-          <pattern
-            id="static-grid"
-            width="100"
-            height="100"
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d="M 100 0 L 0 0 0 100"
-              fill="none"
-              stroke="rgba(0, 240, 255, 0.1)"
-              strokeWidth="1"
-            />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#static-grid)" />
-      </svg>
-    </div>
+    <div 
+      className={`absolute inset-0 pointer-events-none ${isMobile ? 'mobile-grid opacity-[0.02]' : 'cyber-grid opacity-[0.08]'}`}
+      style={{
+        transform: 'translateZ(0)',
+        willChange: 'auto',
+      }}
+    />
   );
 }
 
-// Minimal Cursor Trail - Only 2 points
+// Minimal cursor trail
 function MinimalCursorTrail({ mouseX, mouseY }: { 
   mouseX: number; 
   mouseY: number; 
 }) {
-  const [trail, setTrail] = useState<Array<{ x: number; y: number; id: number }>>([]);
-
-  useEffect(() => {
-    const newPoint = { x: mouseX, y: mouseY, id: Date.now() };
-    setTrail(prevTrail => {
-      const newTrail = [newPoint, ...prevTrail.slice(0, 1)]; // Only 2 points total
-      return newTrail;
-    });
-  }, [mouseX, mouseY]);
-
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      {trail.map((point, index) => (
-        <div
-          key={point.id}
-          className="absolute w-0.5 h-0.5 rounded-full bg-cyber-cyan/50"
-          style={{
-            left: point.x,
-            top: point.y,
-            transform: 'translate(-50%, -50%)',
-            opacity: (2 - index) / 2,
-          }}
-        />
-      ))}
-    </div>
+    <motion.div
+      className="absolute w-2 h-2 bg-cyber-cyan/30 rounded-full pointer-events-none gpu-accelerated"
+      style={{
+        left: mouseX,
+        top: mouseY,
+        transform: 'translate(-50%, -50%) translateZ(0)',
+        willChange: 'transform, opacity',
+      }}
+      animate={{
+        scale: [1, 0.5],
+        opacity: [0.6, 0],
+      }}
+      transition={{
+        duration: 0.8,
+        ease: "easeOut"
+      }}
+    />
   );
+}
+
+// Utility function
+function debounce(func: Function, wait: number) {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 } 

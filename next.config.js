@@ -9,6 +9,12 @@ const nextConfig = {
   assetPrefix: '',
   distDir: 'build',
   trailingSlash: true,
+  // Mobile performance optimizations
+  experimental: {
+    scrollRestoration: true, // Better scroll behavior
+  },
+  // Compress output for better performance
+  compress: true,
   // Remove redirects - they don't work with static export
   // Use meta refresh or client-side routing instead
 }
