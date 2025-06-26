@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { fadeInUp, staggerContainer } from '@/utils/animations';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 
 interface Skill {
   name: string;
@@ -21,33 +21,66 @@ interface SolarSystemProps {
   category: SkillCategory;
   index: number;
   isPaused: boolean;
+  isMobile: boolean;
 }
 
-function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
+function SolarSystem({ category, index, isPaused, isMobile }: SolarSystemProps) {
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);
 
   const handleSkillHover = useCallback((skillName: string | null) => {
-    setHoveredSkill(skillName);
-  }, []);
+    if (!isMobile) { // Disable hover effects on mobile
+      setHoveredSkill(skillName);
+    }
+  }, [isMobile]);
+
+  const handleSkillTap = useCallback((skillName: string) => {
+    if (isMobile) {
+      setHoveredSkill(hoveredSkill === skillName ? null : skillName);
+    }
+  }, [isMobile, hoveredSkill]);
+
+  // Responsive sizing based on screen size
+  const getResponsiveSizing = useMemo(() => {
+    if (isMobile) {
+      return {
+        containerSize: 280,
+        baseRadius: 80,
+        increment: 35,
+        sunSize: 16, // w-16 h-16
+        minPlanetSize: 28,
+        maxPlanetSize: 40
+      };
+    }
+    return {
+      containerSize: 500,
+      baseRadius: 140,
+      increment: 50,
+      sunSize: 24, // w-24 h-24
+      minPlanetSize: 40,
+      maxPlanetSize: 60
+    };
+  }, [isMobile]);
 
   const orbitRadii = useMemo(() => {
-    const baseRadius = 140;
-    const increment = 50;
+    const { baseRadius, increment } = getResponsiveSizing;
     return [0, 1, 2].map(i => baseRadius + i * increment);
-  }, []);
+  }, [getResponsiveSizing]);
 
   const planetSizes = useMemo(() => {
+    const { minPlanetSize, maxPlanetSize } = getResponsiveSizing;
     return category.skills.map(skill => {
-      const minSize = 40;
-      const maxSize = 60;
-      return minSize + (skill.level / 100) * (maxSize - minSize);
+      return minPlanetSize + (skill.level / 100) * (maxPlanetSize - minPlanetSize);
     });
-  }, [category.skills]);
+  }, [category.skills, getResponsiveSizing]);
 
   return (
     <motion.div
-      className="relative flex items-center justify-center"
-      style={{ minHeight: '500px', minWidth: '500px' }}
+      className="relative flex items-center justify-center mx-auto"
+      style={{ 
+        minHeight: `${getResponsiveSizing.containerSize}px`, 
+        minWidth: `${getResponsiveSizing.containerSize}px`,
+        maxWidth: `${getResponsiveSizing.containerSize}px` 
+      }}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -56,7 +89,7 @@ function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
       {orbitRadii.map((radius, orbitIndex) => (
         <div
           key={orbitIndex}
-          className={`absolute border border-dashed ${category.orbitColor} rounded-full opacity-30`}
+          className={`absolute border border-dashed ${category.orbitColor} rounded-full ${isMobile ? 'opacity-20' : 'opacity-30'}`}
           style={{
             width: `${radius * 2}px`,
             height: `${radius * 2}px`,
@@ -67,19 +100,23 @@ function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
 
       {/* Category Sun - CSS Animation */}
       <div
-        className={`solar-sun-rotation absolute z-20 w-24 h-24 rounded-full ${category.centerColor} border-4 border-white/30 flex items-center justify-center`}
+        className={`solar-sun-rotation absolute z-20 ${isMobile ? 'w-16 h-16' : 'w-24 h-24'} rounded-full ${category.centerColor} border-4 border-white/30 flex items-center justify-center touch-manipulation`}
         style={{
           animationPlayState: isPaused ? 'paused' : 'running',
           willChange: 'transform',
-          boxShadow: `0 0 30px ${getCategoryGlow(category.centerColor)}`,
+          boxShadow: `0 0 ${isMobile ? '20px' : '30px'} ${getCategoryGlow(category.centerColor)}`,
+          animationDuration: isMobile ? '30s' : '25s', // Slower on mobile
         }}
       >
         <span 
-          className="solar-sun-text-rotation text-white font-orbitron font-bold text-xs text-center leading-tight"
-          style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
+          className={`solar-sun-text-rotation text-white font-orbitron font-bold ${isMobile ? 'text-xs' : 'text-xs'} text-center leading-tight`}
+          style={{ 
+            animationPlayState: isPaused ? 'paused' : 'running',
+            animationDuration: isMobile ? '30s' : '25s'
+          }}
         >
           {category.title.split(' ').map((word, i) => (
-            <div key={i}>{word}</div>
+            <div key={i}>{isMobile && word.length > 6 ? word.slice(0, 6) : word}</div>
           ))}
         </span>
       </div>
@@ -88,7 +125,7 @@ function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
       {category.skills.map((skill, skillIndex) => {
         const orbitRadius = orbitRadii[skillIndex % 3];
         const planetSize = planetSizes[skillIndex];
-        const orbitDuration = 20 + skillIndex * 5;
+        const orbitDuration = (isMobile ? 25 : 20) + skillIndex * (isMobile ? 8 : 5); // Slower on mobile
 
         return (
           <PlanetOrbit
@@ -100,6 +137,8 @@ function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
             isPaused={isPaused}
             hoveredSkill={hoveredSkill}
             onHover={handleSkillHover}
+            onTap={handleSkillTap}
+            isMobile={isMobile}
           />
         );
       })}
@@ -107,7 +146,7 @@ function SolarSystem({ category, index, isPaused }: SolarSystemProps) {
   );
 }
 
-const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, hoveredSkill, onHover }: {
+const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, hoveredSkill, onHover, onTap, isMobile }: {
   skill: Skill;
   orbitRadius: number;
   planetSize: number;
@@ -115,27 +154,30 @@ const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
   isPaused: boolean;
   hoveredSkill: string | null;
   onHover: (skill: string | null) => void;
+  onTap: (skill: string) => void;
+  isMobile: boolean;
 }) => {
   const handleMouseEnter = useCallback(() => onHover(skill.name), [onHover, skill.name]);
   const handleMouseLeave = useCallback(() => onHover(null), [onHover]);
+  const handleTouchStart = useCallback(() => onTap(skill.name), [onTap, skill.name]);
 
   // Get CSS class for orbit duration
   const getOrbitClass = (duration: number) => {
-    if (duration <= 22) return 'solar-orbit-20s';
     if (duration <= 27) return 'solar-orbit-25s';
     if (duration <= 32) return 'solar-orbit-30s';
     if (duration <= 37) return 'solar-orbit-35s';
     if (duration <= 42) return 'solar-orbit-40s';
-    return 'solar-orbit-45s';
+    if (duration <= 47) return 'solar-orbit-45s';
+    return 'solar-orbit-50s';
   };
 
   const getCounterOrbitClass = (duration: number) => {
-    if (duration <= 22) return 'solar-counter-orbit-20s';
     if (duration <= 27) return 'solar-counter-orbit-25s';
     if (duration <= 32) return 'solar-counter-orbit-30s';
     if (duration <= 37) return 'solar-counter-orbit-35s';
     if (duration <= 42) return 'solar-counter-orbit-40s';
-    return 'solar-counter-orbit-45s';
+    if (duration <= 47) return 'solar-counter-orbit-45s';
+    return 'solar-counter-orbit-50s';
   };
 
   return (
@@ -149,25 +191,26 @@ const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
       }}
     >
       <div
-        className={`absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group ${getCounterOrbitClass(orbitDuration)}`}
+        className={`absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group ${getCounterOrbitClass(orbitDuration)} touch-manipulation`}
         style={{
-          width: `${planetSize + 20}px`,
-          height: `${planetSize + 30}px`,
+          width: `${planetSize + (isMobile ? 15 : 20)}px`,
+          height: `${planetSize + (isMobile ? 20 : 30)}px`,
           animationPlayState: isPaused ? 'paused' : 'running',
         }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
       >
         {/* Planet */}
         <div
-          className={`solar-planet w-full h-2/3 ${skill.color} rounded-full border-3 border-white/40 flex items-center justify-center transition-all duration-300 hover:scale-110`}
+          className={`solar-planet w-full ${isMobile ? 'h-3/4' : 'h-2/3'} ${skill.color} rounded-full border-3 border-white/40 flex items-center justify-center transition-all duration-300 ${!isMobile ? 'hover:scale-110' : ''}`}
           style={{
-            boxShadow: `0 0 15px ${getSkillGlow(skill.color)}`,
+            boxShadow: `0 0 ${isMobile ? '10px' : '15px'} ${getSkillGlow(skill.color)}`,
             willChange: 'transform, box-shadow',
           }}
         >
           {skill.icon && (
-            <span className="text-white text-lg font-bold drop-shadow-lg">
+            <span className={`text-white ${isMobile ? 'text-sm' : 'text-lg'} font-bold drop-shadow-lg`}>
               {skill.icon}
             </span>
           )}
@@ -175,10 +218,10 @@ const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
         
         {/* Skill Name Label */}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 text-center">
-          <div className="text-white font-rajdhani font-bold text-xs bg-black/60 px-2 py-1 rounded backdrop-blur-sm border border-white/20">
-            {skill.name}
+          <div className={`text-white font-rajdhani font-bold ${isMobile ? 'text-xs px-1 py-0.5' : 'text-xs px-2 py-1'} bg-black/60 rounded backdrop-blur-sm border border-white/20 max-w-20 truncate`}>
+            {isMobile && skill.name.length > 8 ? skill.name.slice(0, 8) : skill.name}
           </div>
-          <div className="text-cyber-cyan text-xs font-bold mt-1">
+          <div className={`text-cyber-cyan ${isMobile ? 'text-xs' : 'text-xs'} font-bold mt-1`}>
             {skill.level}%
           </div>
         </div>
@@ -186,7 +229,7 @@ const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
         {/* Optimized Tooltip */}
         {hoveredSkill === skill.name && (
           <motion.div
-            className="tooltip absolute top-full left-1/2 transform -translate-x-1/2 mt-4 p-4 rounded-xl bg-dark-card/95 border-2 border-cyber-cyan/50 backdrop-blur-lg min-w-max z-50"
+            className={`tooltip absolute ${isMobile ? 'top-full left-1/2 transform -translate-x-1/2 mt-2' : 'top-full left-1/2 transform -translate-x-1/2 mt-4'} p-3 rounded-xl bg-dark-card/95 border-2 border-cyber-cyan/50 backdrop-blur-lg min-w-max z-50 max-w-xs`}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -196,28 +239,22 @@ const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
             }}
           >
             <div className="text-center">
-              <div className="text-cyber-cyan font-orbitron font-bold text-lg mb-2">
+              <div className={`text-cyber-cyan font-orbitron font-bold ${isMobile ? 'text-sm' : 'text-lg'} mb-2`}>
                 {skill.name}
               </div>
-              <div className="flex items-center justify-center space-x-4 mb-3">
-                <div className="text-center">
-                  <div className="text-white/90 font-rajdhani text-sm">Proficiency</div>
-                  <div className="text-cyber-green font-bold text-xl">{skill.level}%</div>
+              <div className={`text-white/80 font-rajdhani ${isMobile ? 'text-xs' : 'text-sm'} mb-2`}>
+                Proficiency: {skill.level}%
+              </div>
+              {skill.experience && (
+                <div className={`text-cyber-cyan/80 font-rajdhani ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  {skill.experience}
                 </div>
-                {skill.experience && (
-                  <div className="text-center">
-                    <div className="text-white/90 font-rajdhani text-sm">Experience</div>
-                    <div className="text-cyber-magenta font-bold text-lg">{skill.experience}</div>
-                  </div>
-                )}
-              </div>
-              {/* Simple Progress Bar */}
-              <div className="w-32 h-2 bg-dark-border/50 rounded-full overflow-hidden">
-                <div
-                  className={`h-full ${skill.color} rounded-full transition-all duration-1000 ease-out`}
-                  style={{ width: `${skill.level}%` }}
-                />
-              </div>
+              )}
+              {isMobile && (
+                <div className="text-white/60 font-rajdhani text-xs mt-2">
+                  Tap to close
+                </div>
+              )}
             </div>
           </motion.div>
         )}
@@ -226,20 +263,22 @@ const PlanetOrbit = ({ skill, orbitRadius, planetSize, orbitDuration, isPaused, 
   );
 };
 
-// Utility functions for glow colors
 const getCategoryGlow = (colorClass: string): string => {
-  if (colorClass.includes('cyan')) return 'rgba(0,240,255,0.6)';
-  if (colorClass.includes('magenta')) return 'rgba(255,0,200,0.6)';
-  if (colorClass.includes('green')) return 'rgba(0,255,128,0.6)';
-  return 'rgba(161,0,255,0.6)';
+  const glowMap: { [key: string]: string } = {
+    'bg-gradient-to-br from-cyber-cyan to-cyber-blue': 'rgba(0, 240, 255, 0.6)',
+    'bg-gradient-to-br from-cyber-purple to-cyber-magenta': 'rgba(161, 0, 255, 0.6)',
+    'bg-gradient-to-br from-cyber-green to-cyber-cyan': 'rgba(0, 255, 128, 0.6)',
+  };
+  return glowMap[colorClass] || 'rgba(0, 240, 255, 0.6)';
 };
 
 const getSkillGlow = (colorClass: string): string => {
-  if (colorClass.includes('cyan')) return 'rgba(0,240,255,0.4)';
-  if (colorClass.includes('magenta')) return 'rgba(255,0,200,0.4)';
-  if (colorClass.includes('green')) return 'rgba(0,255,128,0.4)';
-  if (colorClass.includes('purple')) return 'rgba(161,0,255,0.4)';
-  return 'rgba(0,128,255,0.4)';
+  const glowMap: { [key: string]: string } = {
+    'bg-gradient-to-br from-cyber-cyan to-cyber-blue': 'rgba(0, 240, 255, 0.4)',
+    'bg-gradient-to-br from-cyber-purple to-cyber-magenta': 'rgba(161, 0, 255, 0.4)',
+    'bg-gradient-to-br from-cyber-green to-cyber-cyan': 'rgba(0, 255, 128, 0.4)',
+  };
+  return glowMap[colorClass] || 'rgba(0, 240, 255, 0.4)';
 };
 
 interface SkillsProps {
@@ -248,141 +287,165 @@ interface SkillsProps {
 
 export default function Skills({ isDark }: SkillsProps) {
   const [isPaused, setIsPaused] = useState(false);
-  
-  const skillSystems: SkillCategory[] = [
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection with more comprehensive checks
+  useEffect(() => {
+    const checkMobile = () => {
+      if (typeof window !== 'undefined') {
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                              window.innerWidth < 768 ||
+                              ('ontouchstart' in window) ||
+                              (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+        setIsMobile(Boolean(isMobileDevice));
+      }
+    };
+    
+    checkMobile();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
+  }, []);
+
+  const skillCategories: SkillCategory[] = [
     {
-      title: "Frontend Universe",
+      title: "Frontend",
       centerColor: "bg-gradient-to-br from-cyber-cyan to-cyber-blue",
       orbitColor: "border-cyber-cyan/30",
       skills: [
-        { name: "React", level: 85, color: "bg-gradient-to-br from-cyber-cyan to-cyber-blue", icon: "⚛️", experience: "3+ years" },
-        { name: "TypeScript", level: 88, color: "bg-gradient-to-br from-cyber-blue to-cyber-purple", icon: "TS", experience: "2+ years" },
-        { name: "Next.js", level: 80, color: "bg-gradient-to-br from-cyber-purple to-cyber-magenta", icon: "▲", experience: "2+ years" },
-        { name: "Tailwind", level: 90, color: "bg-gradient-to-br from-cyber-cyan to-cyber-green", icon: "🎨", experience: "3+ years" },
-        { name: "CSS3", level: 92, color: "bg-gradient-to-br from-cyber-green to-cyber-cyan", icon: "🎯", experience: "4+ years" },
-        { name: "HTML5", level: 95, color: "bg-gradient-to-br from-cyber-magenta to-cyber-pink", icon: "📝", experience: "4+ years" },
-      ],
+        { name: "React", level: 90, color: "bg-gradient-to-br from-blue-500 to-blue-600", icon: "⚛️", experience: "3+ years" },
+        { name: "TypeScript", level: 85, color: "bg-gradient-to-br from-blue-600 to-blue-700", icon: "📘", experience: "2+ years" },
+        { name: "Next.js", level: 80, color: "bg-gradient-to-br from-gray-800 to-black", icon: "▲", experience: "1+ years" },
+        { name: "Tailwind", level: 95, color: "bg-gradient-to-br from-teal-400 to-teal-500", icon: "🎨", experience: "2+ years" },
+        { name: "HTML/CSS", level: 95, color: "bg-gradient-to-br from-orange-500 to-red-500", icon: "🌐", experience: "4+ years" },
+        { name: "JavaScript", level: 90, color: "bg-gradient-to-br from-yellow-400 to-yellow-500", icon: "⚡", experience: "4+ years" },
+      ]
     },
     {
-      title: "Backend Galaxy",
-      centerColor: "bg-gradient-to-br from-cyber-magenta to-cyber-pink",
-      orbitColor: "border-cyber-magenta/30",
+      title: "Backend",
+      centerColor: "bg-gradient-to-br from-cyber-purple to-cyber-magenta",
+      orbitColor: "border-cyber-purple/30",
       skills: [
-        { name: "C#", level: 90, color: "bg-gradient-to-br from-cyber-magenta to-cyber-pink", icon: "C#", experience: "4+ years" },
-        { name: ".NET Core", level: 88, color: "bg-gradient-to-br from-cyber-purple to-cyber-magenta", icon: "🔷", experience: "3+ years" },
-        { name: "ASP.NET", level: 85, color: "bg-gradient-to-br from-cyber-blue to-cyber-purple", icon: "🌐", experience: "3+ years" },
-        { name: "Entity Framework", level: 80, color: "bg-gradient-to-br from-cyber-cyan to-cyber-blue", icon: "🗄️", experience: "2+ years" },
-        { name: "SQL Server", level: 82, color: "bg-gradient-to-br from-cyber-green to-cyber-cyan", icon: "📊", experience: "3+ years" },
-        { name: "APIs", level: 90, color: "bg-gradient-to-br from-cyber-pink to-cyber-magenta", icon: "🔗", experience: "3+ years" },
-      ],
+        { name: "C#", level: 90, color: "bg-gradient-to-br from-purple-600 to-purple-700", icon: "#️⃣", experience: "3+ years" },
+        { name: ".NET", level: 85, color: "bg-gradient-to-br from-purple-500 to-indigo-600", icon: "🔷", experience: "3+ years" },
+        { name: "Node.js", level: 75, color: "bg-gradient-to-br from-green-600 to-green-700", icon: "🟢", experience: "2+ years" },
+        { name: "Python", level: 70, color: "bg-gradient-to-br from-blue-500 to-yellow-500", icon: "🐍", experience: "1+ years" },
+        { name: "SQL Server", level: 80, color: "bg-gradient-to-br from-red-600 to-red-700", icon: "🗄️", experience: "2+ years" },
+        { name: "MongoDB", level: 70, color: "bg-gradient-to-br from-green-500 to-green-600", icon: "🍃", experience: "1+ years" },
+      ]
     },
     {
-      title: "DevOps Constellation",
+      title: "DevOps Tools",
       centerColor: "bg-gradient-to-br from-cyber-green to-cyber-cyan",
       orbitColor: "border-cyber-green/30",
       skills: [
-        { name: "Azure DevOps", level: 80, color: "bg-gradient-to-br from-cyber-green to-cyber-cyan", icon: "☁️", experience: "2+ years" },
-        { name: "Git", level: 88, color: "bg-gradient-to-br from-cyber-cyan to-cyber-blue", icon: "🌿", experience: "4+ years" },
-        { name: "CI/CD", level: 75, color: "bg-gradient-to-br from-cyber-blue to-cyber-purple", icon: "🔄", experience: "2+ years" },
-        { name: "Docker", level: 60, color: "bg-gradient-to-br from-cyber-purple to-cyber-magenta", icon: "🐳", experience: "1+ year" },
-        { name: "Testing", level: 85, color: "bg-gradient-to-br from-cyber-magenta to-cyber-pink", icon: "🧪", experience: "3+ years" },
-      ],
+        { name: "Azure", level: 75, color: "bg-gradient-to-br from-blue-500 to-blue-600", icon: "☁️", experience: "2+ years" },
+        { name: "Docker", level: 70, color: "bg-gradient-to-br from-blue-400 to-blue-500", icon: "🐳", experience: "1+ years" },
+        { name: "Git", level: 90, color: "bg-gradient-to-br from-orange-500 to-red-500", icon: "📚", experience: "3+ years" },
+        { name: "DevOps", level: 65, color: "bg-gradient-to-br from-purple-500 to-pink-500", icon: "🔄", experience: "1+ years" },
+        { name: "Testing", level: 80, color: "bg-gradient-to-br from-green-500 to-teal-500", icon: "🧪", experience: "2+ years" },
+        { name: "CI/CD", level: 70, color: "bg-gradient-to-br from-indigo-500 to-purple-500", icon: "🚀", experience: "1+ years" },
+      ]
     },
   ];
 
-  const togglePause = useCallback(() => {
-    setIsPaused(prev => !prev);
-  }, []);
-
   return (
     <motion.section
-      className="py-20 relative max-w-7xl mx-auto px-4"
+      className={`py-12 sm:py-20 relative ${isMobile ? 'px-4' : 'max-w-7xl mx-auto px-4'}`}
       initial="initial"
       whileInView="animate"
-      viewport={{ once: true }}
+      viewport={{ once: true, amount: 0.1 }}
       variants={staggerContainer}
     >
-      <div className="absolute inset-0 cyber-grid opacity-5" />
-      
-      <div className="relative z-10">
-        <motion.div className="text-center mb-16" variants={fadeInUp}>
-          <h2 className="text-5xl font-bold font-orbitron mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta">
-            Tech Stack Solar System
-          </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-cyber-cyan to-cyber-magenta mx-auto rounded-full" />
-          <p className="mt-6 text-lg text-white/70 font-rajdhani max-w-3xl mx-auto">
-            Explore my technical universe where skills orbit around expertise domains
-          </p>
-          <p className="mt-3 text-sm text-cyber-cyan font-rajdhani">
-            Planet size indicates proficiency • Hover for detailed stats • Watch them orbit!
-          </p>
-        </motion.div>
+      {/* Enhanced Background Elements */}
+      <motion.div 
+        className="absolute inset-0 cyber-grid opacity-5"
+        animate={{
+          backgroundPosition: ['0px 0px', '50px 50px', '0px 0px'],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+      />
 
-        {/* Pause/Play Button */}
-        <motion.div 
-          className="text-center mb-8"
-          variants={fadeInUp}
+      {/* Section Header */}
+      <motion.div 
+        className="text-center mb-12 sm:mb-20"
+        {...fadeInUp}
+        transition={{ delay: 0.2 }}
+      >
+        <motion.h2 
+          className={`${isMobile ? 'text-3xl' : 'text-4xl sm:text-5xl md:text-6xl'} font-bold font-orbitron mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan via-cyber-purple to-cyber-magenta`}
+          animate={{
+            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          style={{
+            backgroundSize: '200% 200%',
+          }}
         >
-          <motion.button
-            onClick={togglePause}
-            className="px-6 py-3 rounded-full bg-gradient-to-r from-cyber-cyan/20 to-cyber-magenta/20 border border-cyber-cyan/50 text-cyber-cyan font-rajdhani font-bold text-lg hover:from-cyber-cyan/30 hover:to-cyber-magenta/30 transition-all duration-300 backdrop-blur-sm"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          Technical Skills
+        </motion.h2>
+        <motion.p 
+          className={`${isMobile ? 'text-base px-2' : 'text-lg md:text-xl'} text-white/70 font-rajdhani max-w-3xl mx-auto leading-relaxed`}
+          {...fadeInUp}
+          transition={{ delay: 0.4 }}
+        >
+          Explore my technical expertise through interactive solar systems. Each planet represents a skill, 
+          orbiting around core technology categories. {isMobile ? 'Tap planets for details!' : 'Hover over planets for detailed information!'}
+        </motion.p>
+        
+        {/* Mobile-friendly pause control */}
+        <motion.button
+          onClick={() => setIsPaused(!isPaused)}
+          className={`mt-6 px-4 py-2 rounded-lg bg-gradient-to-r from-cyber-cyan/20 to-cyber-blue/20 text-cyber-cyan hover:from-cyber-cyan/30 hover:to-cyber-blue/30 border border-cyber-cyan/30 font-rajdhani font-medium transition-all duration-300 touch-manipulation ${isMobile ? 'text-sm' : 'text-base'}`}
+          {...fadeInUp}
+          transition={{ delay: 0.6 }}
+          whileHover={!isMobile ? { scale: 1.05 } : {}}
+          whileTap={{ scale: 0.95 }}
+        >
+          {isPaused ? 'Resume Orbits' : 'Pause Orbits'}
+        </motion.button>
+      </motion.div>
+
+      {/* Solar Systems Grid - Responsive */}
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-8' : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-12 lg:gap-8'} justify-items-center`}>
+        {skillCategories.map((category, index) => (
+          <motion.div
+            key={category.title}
+            {...fadeInUp}
+            transition={{ delay: 0.8 + index * 0.2 }}
+            className="w-full flex justify-center"
           >
-            {isPaused ? "▶️ Resume Orbits" : "⏸️ Pause Orbits"}
-          </motion.button>
-        </motion.div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-16 justify-items-center">
-          {skillSystems.map((system, index) => (
-            <SolarSystem
-              key={system.title}
-              category={system}
-              index={index}
+            <SolarSystem 
+              category={category} 
+              index={index} 
               isPaused={isPaused}
+              isMobile={isMobile}
             />
-          ))}
-        </div>
-
-        {/* Simplified Legend */}
-        <motion.div
-          className="mt-16 text-center"
-          variants={fadeInUp}
-        >
-          <div className="max-w-4xl mx-auto p-6 rounded-2xl backdrop-blur-lg bg-gradient-to-br from-dark-card/50 to-dark-surface/30 border border-cyber-cyan/20">
-            <h3 className="text-xl font-bold font-orbitron mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyber-green to-cyber-cyan">
-              Navigation Guide
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm font-rajdhani">
-              <div className="text-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-cyber-cyan to-cyber-blue rounded-full mx-auto mb-2"></div>
-                <div className="text-cyber-cyan font-bold">Central Star</div>
-                <div className="text-white/70">Category</div>
-              </div>
-              <div className="text-center">
-                <div className="w-6 h-6 bg-gradient-to-br from-cyber-magenta to-cyber-pink rounded-full mx-auto mb-2"></div>
-                <div className="text-cyber-magenta font-bold">Planet</div>
-                <div className="text-white/70">Skill</div>
-              </div>
-              <div className="text-center">
-                <div className="flex justify-center space-x-1 mb-2">
-                  <div className="w-3 h-3 bg-cyber-green rounded-full"></div>
-                  <div className="w-5 h-5 bg-cyber-green rounded-full"></div>
-                </div>
-                <div className="text-cyber-green font-bold">Size</div>
-                <div className="text-white/70">Proficiency</div>
-              </div>
-              <div className="text-center">
-                <div className="w-6 h-6 bg-dark-card border border-cyber-cyan/30 rounded mx-auto mb-2 flex items-center justify-center">
-                  <span className="text-cyber-cyan text-xs">💬</span>
-                </div>
-                <div className="text-cyber-cyan font-bold">Hover</div>
-                <div className="text-white/70">Details</div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        ))}
       </div>
+
+      {/* Mobile Performance Notice */}
+      {isMobile && (
+        <motion.div
+          className="mt-8 text-center"
+          {...fadeInUp}
+          transition={{ delay: 1.4 }}
+        >
+          <p className="text-xs text-white/50 font-rajdhani">
+            Animations optimized for mobile performance
+          </p>
+        </motion.div>
+      )}
     </motion.section>
   );
 }

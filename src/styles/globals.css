@@ -167,6 +167,10 @@
     animation: solar-spin 45s linear infinite;
   }
   
+  .solar-orbit-50s {
+    animation: solar-spin 50s linear infinite;
+  }
+  
   .solar-counter-orbit-20s {
     animation: solar-spin-reverse 20s linear infinite;
   }
@@ -189,6 +193,10 @@
   
   .solar-counter-orbit-45s {
     animation: solar-spin-reverse 45s linear infinite;
+  }
+
+  .solar-counter-orbit-50s {
+    animation: solar-spin-reverse 50s linear infinite;
   }
 
   @keyframes solar-spin {

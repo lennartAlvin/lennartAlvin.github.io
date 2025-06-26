@@ -24,6 +24,10 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env.local
+
+# EmailJS credentials - never commit these!
+emailjs-credentials.txt
 
 # vercel
 .vercel
