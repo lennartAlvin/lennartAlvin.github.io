@@ -1,10 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  * {
+    cursor: none !important;
+  }
+  
   body {
-    @apply transition-colors duration-200;
+    @apply transition-colors duration-200 overflow-x-hidden;
+    background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #121212 100%);
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize for performance */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Smooth scrolling for better UX */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+@layer components {
+  .glass-morphism {
+    @apply backdrop-blur-lg bg-white/10 border border-white/20;
+  }
+  
+  .glass-morphism-dark {
+    @apply backdrop-blur-lg bg-black/20 border border-cyber-cyan/20;
+  }
+
+  .neon-text {
+    text-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor,
+      0 0 20px currentColor;
+  }
+
+  .cyber-grid {
+    background-image: 
+      linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  .holographic {
+    background: linear-gradient(
+      45deg,
+      #00f0ff,
+      #a100ff,
+      #ff00c8,
+      #00ff80,
+      #0080ff
+    );
+    background-size: 300% 300%;
+    animation: holographic 3s ease infinite;
+  }
+
+  @keyframes holographic {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 }
 
@@ -21,7 +89,7 @@
   @supports not (column-count: 1) {
     .masonry {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 2rem;
     }
 
@@ -31,6 +99,88 @@
   }
 
   .neon-glow {
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.6), 0 0 20px rgba(161, 0, 255, 0.4);
+    box-shadow: 
+      0 0 10px rgba(0, 240, 255, 0.6), 
+      0 0 20px rgba(161, 0, 255, 0.4),
+      0 0 30px rgba(255, 0, 200, 0.3);
   }
+
+  .neon-glow-hover:hover {
+    box-shadow: 
+      0 0 15px rgba(0, 240, 255, 0.8), 
+      0 0 30px rgba(161, 0, 255, 0.6),
+      0 0 45px rgba(255, 0, 200, 0.4);
+  }
+
+  .cyber-border {
+    border: 2px solid transparent;
+    background: linear-gradient(45deg, #00f0ff, #a100ff) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+  }
+
+  .text-holographic {
+    background: linear-gradient(45deg, #00f0ff, #a100ff, #ff00c8);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: holographic 3s ease infinite;
+  }
+
+  .custom-cursor {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #00f0ff;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: difference;
+    transition: all 0.1s ease;
+  }
+
+  .custom-cursor::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: #00f0ff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.particles-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #00f0ff;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.particle:nth-child(odd) {
+  animation-delay: -2s;
+  animation-duration: 4s;
+}
+
+.particle:nth-child(even) {
+  animation-delay: -4s;
+  animation-duration: 8s;
 }
