@@ -8,8 +8,11 @@ export default function Home() {
 
   const fadeInUp = {
     initial: { y: 20, opacity: 0 },
-    animate: { y: 0, opacity: 1 },
-    transition: { duration: 0.5 }
+    animate: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5 }
+    },
   };
 
   const staggerContainer = {
