@@ -14,7 +14,7 @@ interface ProjectCardProps {
 function ProjectCard({ title, description, technologies, githubUrl, isDark, impact }: ProjectCardProps) {
   return (
     <motion.div
-      className={`p-8 rounded-xl ${isDark ? 'bg-gray-800/90' : 'bg-white/90'} shadow-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} backdrop-blur-sm`}
+      className={`masonry-item p-8 rounded-xl ${isDark ? 'bg-gray-800/90' : 'bg-white/90'} shadow-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} backdrop-blur-sm`}
       variants={{
         initial: { y: 20, opacity: 0 },
         animate: { y: 0, opacity: 1 },
@@ -80,7 +80,7 @@ export default function Projects({ isDark }: ProjectsProps) {
         Featured Projects
       </motion.h2>
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+        className="masonry columns-1 md:columns-2"
         variants={staggerContainer}
       >
         <ProjectCard
