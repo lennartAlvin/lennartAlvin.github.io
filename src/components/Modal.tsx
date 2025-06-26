@@ -33,7 +33,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
             exit={{ opacity: 0 }}
           />
           <motion.div
-            className="relative bg-gray-900 text-white p-8 rounded-xl max-w-lg w-full shadow-xl ring-1 ring-cyan-500 neon-glow"
+            className="relative bg-[#1e1e2f] text-white p-8 rounded-xl max-w-lg w-full shadow-xl ring-1 ring-[#00f0ff] neon-glow"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}

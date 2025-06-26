@@ -25,7 +25,7 @@ export default function Home() {
   }, [isDarkMode]);
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'dark bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen ${isDarkMode ? 'dark bg-gradient-to-b from-[#0d0d0d] via-[#121212] to-[#1e1e2f]' : 'bg-white'}`}> 
       <Head>
         <title>Alvin Lennarthsson - Software Developer</title>
         <meta name="description" content="Portfolio of Alvin Lennarthsson - Software Developer specializing in C#, .NET, and API integration" />
@@ -36,7 +36,7 @@ export default function Home() {
         {/* Dark Mode Toggle */}
         <motion.button
           onClick={() => setIsDarkMode(!isDarkMode)}
-          className="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:scale-110 transition-transform"
+          className="fixed top-4 right-4 p-2 rounded-full bg-gray-200 dark:bg-[#1e1e2f] hover:scale-110 transition-transform"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -51,7 +51,7 @@ export default function Home() {
       </main>
 
       <motion.footer
-        className="py-8 text-center text-gray-600 dark:text-gray-300"
+        className="py-8 text-center text-gray-600 dark:text-[rgba(255,255,255,0.8)]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}

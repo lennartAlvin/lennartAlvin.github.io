@@ -13,8 +13,8 @@ function SkillCategory({ title, skills, isDark }: SkillCategoryProps) {
     <motion.div
       className={`p-6 rounded-xl backdrop-blur-sm ${
         isLearning
-          ? `${isDark ? 'bg-blue-900/20' : 'bg-blue-50'} border-2 ${isDark ? 'border-blue-500/30' : 'border-blue-200'}`
-          : `${isDark ? 'bg-gray-800/90' : 'bg-white/90'} border ${isDark ? 'border-gray-700' : 'border-gray-200'}`
+          ? `${isDark ? 'bg-[#ff00c8]/20' : 'bg-[#ff00c8]/10'} border-2 ${isDark ? 'border-[#ff00c8]/30' : 'border-[#ff00c8]/20'}`
+          : `${isDark ? 'bg-[#1e1e2f]/90' : 'bg-white/90'} border ${isDark ? 'border-[#121212]' : 'border-gray-200'}`
       } shadow-lg`}
       variants={{
         initial: { y: 20, opacity: 0 },
@@ -32,7 +32,7 @@ function SkillCategory({ title, skills, isDark }: SkillCategoryProps) {
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{title}</h3>
         {isLearning && (
           <motion.span
-            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200"
+            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#ff00c8]/10 dark:bg-[#ff00c8]/30 text-[#ff0059] dark:text-[#ff00c8]"
             animate={{
               scale: [1, 1.05, 1],
               opacity: [1, 0.8, 1],
@@ -51,11 +51,11 @@ function SkillCategory({ title, skills, isDark }: SkillCategoryProps) {
         {skills.map((skill) => (
           <li
             key={skill}
-            className="text-gray-600 dark:text-gray-300 flex items-center space-x-2"
+            className="text-gray-600 dark:text-[rgba(255,255,255,0.8)] flex items-center space-x-2"
           >
             <span
               className={`w-2 h-2 rounded-full ${
-                isLearning ? 'bg-blue-500 dark:bg-blue-400' : 'bg-blue-500 dark:bg-blue-400'
+                isLearning ? 'bg-[#00f0ff] dark:bg-[#00e0d1]' : 'bg-[#00f0ff] dark:bg-[#00e0d1]'
               }`}
             ></span>
             <span>{skill}</span>

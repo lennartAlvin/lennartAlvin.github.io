@@ -21,7 +21,7 @@ export default function Contact() {
         className="flex flex-col items-center space-y-6"
         variants={fadeInUp}
       >
-        <p className="text-lg text-gray-600 dark:text-gray-300 text-center max-w-2xl">
+        <p className="text-lg text-gray-600 dark:text-[rgba(255,255,255,0.8)] text-center max-w-2xl">
           I'm always interested in hearing about new opportunities, interesting projects, or just having a chat.
         </p>
         <div className="flex space-x-6">
@@ -30,7 +30,7 @@ export default function Contact() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
+            className="text-gray-600 dark:text-[rgba(255,255,255,0.8)] hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
           >
             <FaGithub className="w-8 h-8" />
           </a>
@@ -39,14 +39,14 @@ export default function Contact() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
-            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
+            className="text-gray-600 dark:text-[rgba(255,255,255,0.8)] hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
           >
             <FaLinkedin className="w-8 h-8" />
           </a>
           <a
             href="mailto:alvin.lennarthsson@gmail.com"
             aria-label="Email"
-            className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
+            className="text-gray-600 dark:text-[rgba(255,255,255,0.8)] hover:text-gray-900 dark:hover:text-white transition-colors transform hover:scale-110 duration-200"
           >
             <FaEnvelope className="w-8 h-8" />
           </a>
