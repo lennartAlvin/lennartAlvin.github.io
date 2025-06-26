@@ -35,7 +35,14 @@ export default function Home() {
       <Head>
         <title>Alvin Lennarthsson - Software Developer</title>
         <meta name="description" content="Portfolio of Alvin Lennarthsson - Software Developer specializing in C#, .NET, and API integration" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+        <meta name="theme-color" content="#00f0ff" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="format-detection" content="telephone=no" />
         <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
       </Head>
 
       {/* Custom Cursor */}
@@ -47,10 +54,10 @@ export default function Home() {
       {/* Particle Background - Keep for additional ambiance */}
       <ParticleBackground />
 
-      {/* Enhanced Dark Mode Toggle */}
+      {/* Enhanced Dark Mode Toggle - Mobile optimized */}
       <motion.button
         onClick={() => setIsDarkMode(!isDarkMode)}
-        className="fixed top-6 right-6 z-50 p-3 rounded-full bg-gradient-to-r from-cyber-cyan/20 to-cyber-blue/20 hover:from-cyber-cyan/30 hover:to-cyber-blue/30 border border-cyber-cyan/30 backdrop-blur-sm transition-all duration-300 group"
+        className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 p-2 sm:p-3 rounded-full bg-gradient-to-r from-cyber-cyan/20 to-cyber-blue/20 hover:from-cyber-cyan/30 hover:to-cyber-blue/30 border border-cyber-cyan/30 backdrop-blur-sm transition-all duration-300 group touch-manipulation"
         whileHover={{ 
           scale: 1.1, 
           y: -2,
@@ -62,7 +69,7 @@ export default function Home() {
         transition={{ delay: 1, duration: 0.5 }}
       >
         <motion.span 
-          className="text-2xl block"
+          className="text-xl sm:text-2xl block"
           animate={{ rotate: isDarkMode ? 0 : 180 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
         >

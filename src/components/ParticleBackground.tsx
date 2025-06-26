@@ -23,8 +23,10 @@ export default function ParticleBackground() {
     if (!ctx) return;
 
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      if (typeof window !== 'undefined') {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
     };
 
     const colors = ['#00f0ff', '#a100ff', '#ff00c8', '#00ff80'];
@@ -90,10 +92,14 @@ export default function ParticleBackground() {
       initParticles();
     };
 
-    window.addEventListener('resize', handleResize);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+    }
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize);
+      }
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }

@@ -9,16 +9,8 @@ const nextConfig = {
   assetPrefix: '',
   distDir: 'build',
   trailingSlash: true,
-  // Add redirects for GitHub Pages
-  async redirects() {
-    return [
-      {
-        source: '/index.html',
-        destination: '/',
-        permanent: true,
-      },
-    ];
-  },
+  // Remove redirects - they don't work with static export
+  // Use meta refresh or client-side routing instead
 }
 
 module.exports = nextConfig 

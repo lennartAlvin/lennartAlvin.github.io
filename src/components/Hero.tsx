@@ -84,9 +84,9 @@ export default function Hero() {
         }}
       />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
         <motion.div 
-          className="space-y-8"
+          className="space-y-6 sm:space-y-8 text-center lg:text-left"
           initial="initial"
           whileInView="animate"
           viewport={{ once: true }}
@@ -103,7 +103,7 @@ export default function Hero() {
 
           {/* Main Title with Enhanced Glitch Effect */}
           <motion.h1 
-            className={`text-6xl md:text-8xl font-bold font-orbitron leading-tight ${
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold font-orbitron leading-tight ${
               glitchActive ? 'animate-glitch' : ''
             }`}
             initial={{ y: 100, opacity: 0, scale: 0.8 }}
@@ -157,7 +157,7 @@ export default function Hero() {
 
           {/* Enhanced Typed Role with Typewriter Effect */}
           <motion.div 
-            className="text-2xl md:text-3xl font-rajdhani text-white/80 h-12 flex items-center overflow-hidden"
+            className="text-xl sm:text-2xl md:text-3xl font-rajdhani text-white/80 h-10 sm:h-12 flex items-center justify-center lg:justify-start overflow-hidden"
             {...scrollFadeInUp}
             transition={{ delay: 0.4 }}
           >
@@ -179,7 +179,7 @@ export default function Hero() {
 
           {/* Enhanced Description */}
           <motion.p 
-            className="text-lg md:text-xl text-white/70 font-rajdhani leading-relaxed max-w-2xl"
+            className="text-base sm:text-lg md:text-xl text-white/70 font-rajdhani leading-relaxed max-w-2xl mx-auto lg:mx-0"
             initial={{ y: 50, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}

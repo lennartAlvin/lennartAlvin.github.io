@@ -9,62 +9,214 @@ interface Particle {
   id: number;
   x: number;
   y: number;
+  targetX: number;
+  targetY: number;
   size: number;
   color: string;
   speed: number;
+}
+
+interface Ripple {
+  id: number;
+  x: number;
+  y: number;
+  timestamp: number;
 }
 
 export default function InteractiveBackground({ isDark = true }: InteractiveBackgroundProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const [ripples, setRipples] = useState<Ripple[]>([]);
+  const [isMouseMoving, setIsMouseMoving] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const mouseStopTimeout = useRef<NodeJS.Timeout>();
+  const lastMouseUpdate = useRef(0);
   
-  // Smooth mouse tracking with springs
+  // Ultra-smooth mouse tracking with more aggressive damping
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-  const springX = useSpring(mouseX, { stiffness: 100, damping: 30 });
-  const springY = useSpring(mouseY, { stiffness: 100, damping: 30 });
+  const springX = useSpring(mouseX, { stiffness: 50, damping: 30, mass: 0.5 });
+  const springY = useSpring(mouseY, { stiffness: 50, damping: 30, mass: 0.5 });
 
-  // Update window size
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      if (typeof window !== 'undefined') {
+        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                              window.innerWidth < 768 ||
+                              ('ontouchstart' in window);
+        setIsMobile(isMobileDevice);
+      }
+    };
+    
+    checkMobile();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
+  }, []);
+
   useEffect(() => {
     const updateWindowSize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
+      if (typeof window !== 'undefined') {
+        setWindowSize({
+          width: window.innerWidth,
+          height: window.innerHeight,
+        });
+      }
     };
 
     updateWindowSize();
-    window.addEventListener('resize', updateWindowSize);
-    return () => window.removeEventListener('resize', updateWindowSize);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', updateWindowSize);
+      return () => window.removeEventListener('resize', updateWindowSize);
+    }
   }, []);
 
-  // Mouse tracking
+  // Ultra-throttled mouse tracking for maximum smoothness
   const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (isMobile) return; // Skip on mobile
+    
+    const now = performance.now();
+    if (now - lastMouseUpdate.current < 32) return; // Limit to 30fps max
+    lastMouseUpdate.current = now;
+    
     const x = e.clientX;
     const y = e.clientY;
     
     setMousePosition({ x, y });
     mouseX.set(x);
     mouseY.set(y);
-  }, [mouseX, mouseY]);
+    setIsMouseMoving(true);
+
+    if (mouseStopTimeout.current) {
+      clearTimeout(mouseStopTimeout.current);
+    }
+
+    mouseStopTimeout.current = setTimeout(() => {
+      setIsMouseMoving(false);
+    }, 500);
+  }, [mouseX, mouseY, isMobile]);
+
+  // Touch event handlers for mobile
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (!isMobile) return;
+    
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+    
+    setMousePosition({ x, y });
+    mouseX.set(x);
+    mouseY.set(y);
+    setIsMouseMoving(true);
+  }, [mouseX, mouseY, isMobile]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!isMobile) return;
+    
+    const now = performance.now();
+    if (now - lastMouseUpdate.current < 50) return; // Less frequent updates on mobile
+    lastMouseUpdate.current = now;
+    
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+    
+    setMousePosition({ x, y });
+    mouseX.set(x);
+    mouseY.set(y);
+  }, [mouseX, mouseY, isMobile]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (!isMobile) return;
+    
+    setTimeout(() => {
+      setIsMouseMoving(false);
+    }, 300);
+  }, [isMobile]);
+
+  // Simplified click handler with even more restrictive ripple limits
+  const handleClick = useCallback((e: MouseEvent) => {
+    const maxRipples = isMobile ? 1 : 2; // Fewer ripples on mobile
+    if (ripples.length >= maxRipples) return;
+    
+    const newRipple: Ripple = {
+      id: Date.now(),
+      x: e.clientX,
+      y: e.clientY,
+      timestamp: Date.now(),
+    };
+    
+    setRipples(prev => [...prev, newRipple]);
+    
+    setTimeout(() => {
+      setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id));
+    }, isMobile ? 800 : 1000); // Shorter duration on mobile
+  }, [ripples.length, isMobile]);
+
+  // Touch tap handler
+  const handleTouchTap = useCallback((e: TouchEvent) => {
+    if (!isMobile || ripples.length >= 1) return;
+    
+    const touch = e.changedTouches[0];
+    const newRipple: Ripple = {
+      id: Date.now(),
+      x: touch.clientX,
+      y: touch.clientY,
+      timestamp: Date.now(),
+    };
+    
+    setRipples(prev => [...prev, newRipple]);
+    
+    setTimeout(() => {
+      setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id));
+    }, 800);
+  }, [ripples.length, isMobile]);
 
   useEffect(() => {
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [handleMouseMove]);
+    if (typeof window !== 'undefined') {
+      // Mouse events (desktop only)
+      if (!isMobile) {
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        window.addEventListener('click', handleClick, { passive: true });
+      }
+      
+      // Touch events (mobile only)
+      if (isMobile) {
+        window.addEventListener('touchstart', handleTouchStart, { passive: true });
+        window.addEventListener('touchmove', handleTouchMove, { passive: true });
+        window.addEventListener('touchend', handleTouchEnd, { passive: true });
+        window.addEventListener('touchend', handleTouchTap, { passive: true });
+      }
+      
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('click', handleClick);
+        window.removeEventListener('touchstart', handleTouchStart);
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('touchend', handleTouchEnd);
+        window.removeEventListener('touchend', handleTouchTap);
+        if (mouseStopTimeout.current) {
+          clearTimeout(mouseStopTimeout.current);
+        }
+      };
+    }
+  }, [handleMouseMove, handleClick, handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchTap, isMobile]);
 
-  // Generate dynamic gradient based on mouse position
+  // Extremely simplified gradient that updates less frequently
   const getDynamicGradient = () => {
-    const xPercent = (mousePosition.x / windowSize.width) * 100;
-    const yPercent = (mousePosition.y / windowSize.height) * 100;
+    if (!windowSize.width || !windowSize.height) return 'transparent';
+    
+    const xPercent = Math.round((mousePosition.x / windowSize.width) * 10) * 10; // Round to reduce updates
+    const yPercent = Math.round((mousePosition.y / windowSize.height) * 10) * 10;
+    const intensity = isMouseMoving ? (isMobile ? 0.04 : 0.08) : 0.03; // Reduced intensity on mobile
     
     return `radial-gradient(circle at ${xPercent}% ${yPercent}%, 
-      rgba(0, 240, 255, 0.15) 0%, 
-      rgba(255, 0, 200, 0.1) 25%, 
-      rgba(0, 255, 128, 0.05) 50%, 
-      rgba(161, 0, 255, 0.02) 75%, 
-      transparent 100%)`;
+      rgba(0, 240, 255, ${intensity}) 0%, 
+      rgba(161, 0, 255, ${intensity * 0.3}) 30%, 
+      transparent 60%)`;
   };
 
   return (
@@ -72,198 +224,159 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
       ref={containerRef}
       className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
     >
-      {/* Dynamic Gradient Overlay */}
-      <motion.div
-        className="absolute inset-0"
+      {/* Simplified Dynamic Gradient - Less frequent updates */}
+      <div
+        className="absolute inset-0 transition-all duration-700 ease-out"
         style={{
           background: getDynamicGradient(),
         }}
-        animate={{
-          background: getDynamicGradient(),
-        }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
       />
 
-      {/* Floating Orbs that Follow Cursor */}
-      <FloatingOrb 
+      {/* Single Magnetic Orb - Reduced size on mobile */}
+      <MagneticOrb 
         mouseX={springX} 
         mouseY={springY} 
-        delay={0} 
-        size={300}
-        color="rgba(0, 240, 255, 0.08)"
-        speed={0.1}
-      />
-      <FloatingOrb 
-        mouseX={springX} 
-        mouseY={springY} 
-        delay={0.5} 
-        size={200}
-        color="rgba(255, 0, 200, 0.06)"
-        speed={0.15}
-      />
-      <FloatingOrb 
-        mouseX={springX} 
-        mouseY={springY} 
-        delay={1} 
-        size={150}
-        color="rgba(0, 255, 128, 0.04)"
-        speed={0.2}
+        size={isMobile ? 150 : 250}
+        color={isMobile ? "rgba(0, 240, 255, 0.02)" : "rgba(0, 240, 255, 0.04)"}
+        isMoving={isMouseMoving}
+        isMobile={isMobile}
       />
 
-      {/* Interactive Grid Lines */}
-      <InteractiveGrid mouseX={mousePosition.x} mouseY={mousePosition.y} />
+      {/* Minimal Particle System - Disabled on mobile for performance */}
+      {!isMobile && isMouseMoving && (
+        <MinimalParticleSwarm 
+          mousePosition={mousePosition} 
+          windowSize={windowSize} 
+        />
+      )}
 
-      {/* Cursor Trail Effect */}
-      <CursorTrail mouseX={mousePosition.x} mouseY={mousePosition.y} />
+      {/* Simplified Grid - Static */}
+      <StaticGrid isMobile={isMobile} />
 
-      {/* Ambient Particles */}
-      <AmbientParticles mousePosition={mousePosition} />
+      {/* Minimal Ripple Effects */}
+      {ripples.map((ripple) => (
+        <motion.div
+          key={ripple.id}
+          className="absolute pointer-events-none"
+          style={{
+            left: ripple.x,
+            top: ripple.y,
+            transform: 'translate(-50%, -50%)',
+          }}
+          initial={{ scale: 0, opacity: 0.4 }}
+          animate={{ scale: isMobile ? 1.5 : 2, opacity: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: isMobile ? 0.8 : 1, ease: "easeOut" }}
+        >
+          <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-full border border-cyber-cyan/30`} />
+        </motion.div>
+      ))}
+
+      {/* Ultra-minimal cursor trail - Desktop only */}
+      {!isMobile && isMouseMoving && (
+        <MinimalCursorTrail mouseX={mousePosition.x} mouseY={mousePosition.y} />
+      )}
     </div>
   );
 }
 
-// Floating Orb Component
-function FloatingOrb({ 
+// Simplified Magnetic Orb - Single orb with minimal animation
+function MagneticOrb({ 
   mouseX, 
   mouseY, 
-  delay, 
   size, 
-  color, 
-  speed 
+  color,
+  isMoving,
+  isMobile
 }: {
   mouseX: any;
   mouseY: any;
-  delay: number;
   size: number;
   color: string;
-  speed: number;
+  isMoving: boolean;
+  isMobile: boolean;
 }) {
   return (
     <motion.div
-      className="absolute rounded-full blur-xl"
+      className="absolute rounded-full pointer-events-none"
       style={{
         width: size,
         height: size,
         background: `radial-gradient(circle, ${color} 0%, transparent 70%)`,
-        x: mouseX,
-        y: mouseY,
+        x: isMobile ? '50%' : mouseX, // Center on mobile
+        y: isMobile ? '50%' : mouseY,
         translateX: `-50%`,
         translateY: `-50%`,
+        filter: isMobile ? 'blur(20px)' : 'blur(30px)', // Less blur on mobile
       }}
       animate={{
-        scale: [1, 1.2, 1],
-        opacity: [0.3, 0.6, 0.3],
+        scale: isMoving ? (isMobile ? 1.05 : 1.1) : 1,
+        opacity: isMoving ? (isMobile ? 0.4 : 0.6) : (isMobile ? 0.2 : 0.3),
       }}
-      transition={{
-        scale: { duration: 4, repeat: Infinity, ease: "easeInOut", delay },
-        opacity: { duration: 3, repeat: Infinity, ease: "easeInOut", delay },
+      transition={{ 
+        duration: isMobile ? 1.5 : 2, 
+        ease: "easeOut" 
       }}
     />
   );
 }
 
-// Interactive Grid Component
-function InteractiveGrid({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
-  const gridSize = 50;
-  const [hoveredCell, setHoveredCell] = useState<string | null>(null);
-
-  const getCellKey = (x: number, y: number) => `${x}-${y}`;
-  
-  const isNearMouse = (cellX: number, cellY: number) => {
-    const distance = Math.sqrt(
-      Math.pow(cellX - mouseX, 2) + Math.pow(cellY - mouseY, 2)
-    );
-    return distance < 150;
-  };
-
-  return (
-    <div className="absolute inset-0 opacity-20">
-      <svg width="100%" height="100%" className="absolute inset-0">
-        <defs>
-          <pattern
-            id="interactive-grid"
-            width={gridSize}
-            height={gridSize}
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`}
-              fill="none"
-              stroke="rgba(0, 240, 255, 0.1)"
-              strokeWidth="0.5"
-            />
-          </pattern>
-          <pattern
-            id="interactive-grid-hover"
-            width={gridSize}
-            height={gridSize}
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d={`M ${gridSize} 0 L 0 0 0 ${gridSize}`}
-              fill="none"
-              stroke="rgba(0, 240, 255, 0.4)"
-              strokeWidth="1"
-            />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#interactive-grid)" />
-        
-        {/* Highlight cells near mouse */}
-        <motion.circle
-          cx={mouseX}
-          cy={mouseY}
-          r="100"
-          fill="url(#interactive-grid-hover)"
-          style={{ mixBlendMode: 'screen' }}
-          animate={{
-            r: [80, 120, 80],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-      </svg>
-    </div>
-  );
-}
-
-// Cursor Trail Effect
-function CursorTrail({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
-  const [trail, setTrail] = useState<Array<{ x: number; y: number; id: number }>>([]);
+// Minimal Particle System - Only 4 particles
+function MinimalParticleSwarm({ mousePosition, windowSize }: { 
+  mousePosition: { x: number; y: number }; 
+  windowSize: { width: number; height: number };
+}) {
+  const [particles, setParticles] = useState<Array<{id: number, x: number, y: number}>>([]);
 
   useEffect(() => {
-    const newPoint = { x: mouseX, y: mouseY, id: Date.now() };
-    
-    setTrail(prev => {
-      const newTrail = [newPoint, ...prev.slice(0, 8)];
-      return newTrail;
-    });
-  }, [mouseX, mouseY]);
+    const particleCount = 4; // Ultra minimal
+    const newParticles = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      newParticles.push({
+        id: i,
+        x: Math.random() * windowSize.width,
+        y: Math.random() * windowSize.height,
+      });
+    }
+
+    setParticles(newParticles);
+  }, [windowSize]);
+
+  useEffect(() => {
+    const animateParticles = () => {
+      setParticles(prevParticles => 
+        prevParticles.map(particle => {
+          const dx = mousePosition.x - particle.x;
+          const dy = mousePosition.y - particle.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < 100) {
+            const pullStrength = 0.02; // Very gentle pull
+            particle.x += dx * pullStrength;
+            particle.y += dy * pullStrength;
+          }
+
+          return particle;
+        })
+      );
+    };
+
+    const interval = setInterval(animateParticles, 50); // 20fps
+    return () => clearInterval(interval);
+  }, [mousePosition]);
 
   return (
-    <div className="absolute inset-0">
-      {trail.map((point, index) => (
-        <motion.div
-          key={point.id}
-          className="absolute w-2 h-2 rounded-full pointer-events-none"
+    <div className="absolute inset-0 pointer-events-none">
+      {particles.map(particle => (
+        <div
+          key={particle.id}
+          className="absolute w-1 h-1 rounded-full bg-cyber-cyan/40"
           style={{
-            left: point.x - 4,
-            top: point.y - 4,
-            background: `rgba(0, 240, 255, ${0.8 - index * 0.1})`,
-            boxShadow: `0 0 ${10 - index}px rgba(0, 240, 255, 0.6)`,
-          }}
-          initial={{ scale: 1, opacity: 0.8 }}
-          animate={{ 
-            scale: 0,
-            opacity: 0,
-          }}
-          transition={{ 
-            duration: 0.8,
-            ease: "easeOut",
+            left: particle.x,
+            top: particle.y,
+            transform: 'translate(-50%, -50%)',
+            boxShadow: '0 0 4px rgba(0, 240, 255, 0.4)',
           }}
         />
       ))}
@@ -271,67 +384,58 @@ function CursorTrail({ mouseX, mouseY }: { mouseX: number; mouseY: number }) {
   );
 }
 
-// Ambient Particles
-function AmbientParticles({ mousePosition }: { mousePosition: { x: number; y: number } }) {
-  const [particles, setParticles] = useState<Particle[]>([]);
+// Static Grid - No animations
+function StaticGrid({ isMobile }: { isMobile: boolean }) {
+  return (
+    <div className={`absolute inset-0 opacity-10 pointer-events-none ${isMobile ? 'mobile-grid' : ''}`}>
+      <svg width="100%" height="100%">
+        <defs>
+          <pattern
+            id="static-grid"
+            width="100"
+            height="100"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 100 0 L 0 0 0 100"
+              fill="none"
+              stroke="rgba(0, 240, 255, 0.1)"
+              strokeWidth="1"
+            />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#static-grid)" />
+      </svg>
+    </div>
+  );
+}
+
+// Minimal Cursor Trail - Only 2 points
+function MinimalCursorTrail({ mouseX, mouseY }: { 
+  mouseX: number; 
+  mouseY: number; 
+}) {
+  const [trail, setTrail] = useState<Array<{ x: number; y: number; id: number }>>([]);
 
   useEffect(() => {
-    // Generate particles near mouse
-    const generateParticles = () => {
-      const newParticles: Particle[] = [];
-      for (let i = 0; i < 3; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const radius = Math.random() * 100;
-        const x = mousePosition.x + Math.cos(angle) * radius;
-        const y = mousePosition.y + Math.sin(angle) * radius;
-        
-        newParticles.push({
-          id: Date.now() + i,
-          x,
-          y,
-          size: Math.random() * 4 + 1,
-          color: ['rgba(0, 240, 255, 0.6)', 'rgba(255, 0, 200, 0.6)', 'rgba(0, 255, 128, 0.6)'][i],
-          speed: Math.random() * 2 + 1,
-        });
-      }
-      
-      setParticles(prev => [...prev, ...newParticles].slice(-20));
-    };
-
-    const interval = setInterval(generateParticles, 100);
-    return () => clearInterval(interval);
-  }, [mousePosition]);
+    const newPoint = { x: mouseX, y: mouseY, id: Date.now() };
+    setTrail(prevTrail => {
+      const newTrail = [newPoint, ...prevTrail.slice(0, 1)]; // Only 2 points total
+      return newTrail;
+    });
+  }, [mouseX, mouseY]);
 
   return (
-    <div className="absolute inset-0">
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className="absolute rounded-full pointer-events-none"
+    <div className="absolute inset-0 pointer-events-none">
+      {trail.map((point, index) => (
+        <div
+          key={point.id}
+          className="absolute w-0.5 h-0.5 rounded-full bg-cyber-cyan/50"
           style={{
-            left: particle.x,
-            top: particle.y,
-            width: particle.size,
-            height: particle.size,
-            background: particle.color,
-            boxShadow: `0 0 ${particle.size * 2}px ${particle.color}`,
-          }}
-          initial={{ 
-            scale: 0,
-            opacity: 1,
-            y: 0,
-          }}
-          animate={{ 
-            scale: [0, 1, 0],
-            opacity: [0, 1, 0],
-            y: -50,
-          }}
-          transition={{ 
-            duration: 2,
-            ease: "easeOut",
-          }}
-          onAnimationComplete={() => {
-            setParticles(prev => prev.filter(p => p.id !== particle.id));
+            left: point.x,
+            top: point.y,
+            transform: 'translate(-50%, -50%)',
+            opacity: (2 - index) / 2,
           }}
         />
       ))}
