@@ -6,37 +6,69 @@ export default function Hero() {
   const [glitchActive, setGlitchActive] = useState(false);
   const [typedText, setTypedText] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const roles = ['Software Developer', 'Full-Stack Engineer', 'Problem Solver', 'Code Architect'];
   const [currentRole, setCurrentRole] = useState(0);
 
-  // Mobile detection
+  // Ensure client-side rendering
+  useEffect(() => {
+    setIsClient(true);
+    setIsLoaded(true);
+  }, []);
+
+  // Enhanced mobile detection with fallbacks
   useEffect(() => {
     const checkMobile = () => {
       if (typeof window !== 'undefined') {
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                              window.innerWidth < 768 ||
-                              ('ontouchstart' in window);
+        const userAgent = navigator.userAgent || '';
+        const isMobileDevice = 
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) ||
+          window.innerWidth < 768 ||
+          ('ontouchstart' in window) ||
+          window.matchMedia('(pointer: coarse)').matches;
+        
         setIsMobile(Boolean(isMobileDevice));
+      } else {
+        // Server-side fallback
+        setIsMobile(false);
       }
     };
     
+    // Initial check
     checkMobile();
+    
     if (typeof window !== 'undefined') {
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
+      const debouncedCheck = () => {
+        clearTimeout((window as any).mobileCheckTimeout);
+        (window as any).mobileCheckTimeout = setTimeout(checkMobile, 100);
+      };
+      
+      window.addEventListener('resize', debouncedCheck, { passive: true });
+      window.addEventListener('orientationchange', debouncedCheck, { passive: true });
+      
+      return () => {
+        window.removeEventListener('resize', debouncedCheck);
+        window.removeEventListener('orientationchange', debouncedCheck);
+        clearTimeout((window as any).mobileCheckTimeout);
+      };
     }
   }, []);
 
   useEffect(() => {
+    if (!isClient) return;
+    
     const interval = setInterval(() => {
       setGlitchActive(true);
-      setTimeout(() => setGlitchActive(false), isMobile ? 100 : 200); // Shorter glitch on mobile
-    }, isMobile ? 8000 : 5000); // Less frequent on mobile
+      setTimeout(() => setGlitchActive(false), isMobile ? 100 : 200);
+    }, isMobile ? 8000 : 5000);
 
     return () => clearInterval(interval);
-  }, [isMobile]);
+  }, [isMobile, isClient]);
 
   useEffect(() => {
+    if (!isClient) return;
+    
     const typeRole = () => {
       const role = roles[currentRole];
       let index = 0;
@@ -53,19 +85,40 @@ export default function Hero() {
                 clearInterval(deleteInterval);
                 setCurrentRole((prev) => (prev + 1) % roles.length);
               }
-            }, isMobile ? 100 : 120); // Much slower deletion
-          }, isMobile ? 3000 : 4000); // Much longer pause to read the role
+            }, isMobile ? 100 : 120);
+          }, isMobile ? 3000 : 4000);
         }
-      }, isMobile ? 150 : 120); // Much slower typing
+      }, isMobile ? 150 : 120);
     };
 
     typeRole();
-  }, [currentRole, isMobile]);
+  }, [currentRole, isMobile, isClient]);
+
+  // Don't render until client-side is ready
+  if (!isClient || !isLoaded) {
+    return (
+      <section className="relative min-h-screen flex items-center justify-center py-12 sm:py-20 overflow-hidden bg-gradient-to-br from-dark-bg via-dark-surface to-dark-card">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-cyber-cyan/20 rounded w-32 mx-auto mb-6"></div>
+            <div className="h-16 bg-gradient-to-r from-cyber-cyan/20 to-cyber-magenta/20 rounded w-64 mx-auto mb-6"></div>
+            <div className="h-6 bg-white/10 rounded w-48 mx-auto mb-4"></div>
+            <div className="text-xs text-white/40 font-rajdhani">
+              Loading Hero Section...
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <motion.section
-      className="relative min-h-screen flex items-center justify-center py-12 sm:py-20 overflow-hidden"
+      className={`relative min-h-screen flex items-center justify-center py-12 sm:py-20 overflow-hidden ${isMobile ? 'mobile-optimized' : ''}`}
       {...heroEntrance}
+      style={{ 
+        minHeight: isMobile ? '100svh' : '100vh' // Use safe viewport height on mobile
+      }}
     >
       {/* Enhanced Cyber Grid Background with Parallax - Reduced on mobile */}
       <motion.div 

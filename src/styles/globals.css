@@ -34,10 +34,11 @@
   @media (max-width: 768px) {
     html {
       font-size: 14px;
-      /* Disable smooth scrolling on mobile to prevent conflicts */
+      /* Enable pull-to-refresh on mobile */
       scroll-behavior: auto;
-      /* Prevent iOS rubber band scrolling */
-      overscroll-behavior: none;
+      /* Allow controlled overscroll for pull-to-refresh */
+      overscroll-behavior-x: none;
+      overscroll-behavior-y: auto;
       /* Optimize for touch scrolling */
       -webkit-overflow-scrolling: touch;
     }
@@ -46,19 +47,18 @@
       -webkit-text-size-adjust: none;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      /* Prevent bounce scrolling on iOS */
-      overscroll-behavior: none;
+      /* Allow text selection on mobile for better UX */
+      -webkit-user-select: auto;
+      -moz-user-select: auto;
+      -ms-user-select: auto;
+      user-select: auto;
+      /* Enable pull-to-refresh */
+      overscroll-behavior-x: none;
+      overscroll-behavior-y: auto;
       /* Optimize scrolling performance */
       -webkit-overflow-scrolling: touch;
-      /* Disable momentum scrolling that can cause jank */
-      -webkit-overflow-scrolling: auto;
-      /* Force hardware acceleration */
+      /* Force hardware acceleration only when needed */
       transform: translateZ(0);
-      will-change: scroll-position;
     }
 
     /* Prevent iOS zoom on input focus */
@@ -76,8 +76,8 @@
       border-radius: 0;
     }
 
-    /* Optimize all animated elements for mobile */
-    * {
+    /* Optimize animated elements for mobile - but don't force on all elements */
+    .mobile-optimized {
       /* Force GPU acceleration for better animation performance */
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
@@ -97,16 +97,18 @@
       }
     }
 
-    /* Hide scrollbars on mobile */
+    /* Hide scrollbars on mobile but allow functionality */
     ::-webkit-scrollbar {
       width: 0px;
       background: transparent;
     }
 
-    /* Disable overscroll glow effect */
+    /* Enable controlled overscroll */
     html {
-      -webkit-overscroll-behavior: none;
-      overscroll-behavior: none;
+      -webkit-overscroll-behavior-x: none;
+      -webkit-overscroll-behavior-y: auto;
+      overscroll-behavior-x: none;
+      overscroll-behavior-y: auto;
     }
 
     /* Optimize transforms for mobile */
@@ -116,11 +118,12 @@
     }
   }
 
-  /* Enhanced touch-friendly scrolling */
-  * {
+  /* Enhanced touch-friendly scrolling - but don't prevent overscroll completely */
+  html, body {
     -webkit-overflow-scrolling: touch;
-    /* Prevent momentum scrolling issues */
-    overscroll-behavior: none;
+    /* Allow vertical overscroll for pull-to-refresh */
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
   }
 
   /* Better text selection */

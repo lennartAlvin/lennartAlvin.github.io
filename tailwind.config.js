@@ -21,6 +21,7 @@ module.exports = {
           pink: '#ff0080',
         },
         dark: {
+          bg: '#0d0d0d',
           base: '#0d0d0d',
           card: '#1a1a1a',
           surface: '#121212',
