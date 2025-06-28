@@ -1,10 +1,21 @@
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fadeInUp, staggerContainer } from '@/utils/animations';
-import { FaGithub, FaLinkedin, FaEnvelope, FaMapMarkerAlt, FaPhone, FaDownload, FaPaperPlane, FaCheck, FaTimes, FaSpinner } from 'react-icons/fa';
-import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import emailjs from '@emailjs/browser';
-import { emailConfig, createEmailTemplate } from '@/utils/emailConfig';
+import { 
+  FaGithub, 
+  FaLinkedin, 
+  FaEnvelope, 
+  FaMapMarkerAlt, 
+  FaDownload, 
+  FaPaperPlane, 
+  FaCheck, 
+  FaTimes, 
+  FaSpinner 
+} from 'react-icons/fa';
+import { fadeInUp, staggerContainer } from '@/utils/animations';
+import { emailConfig } from '@/utils/emailConfig';
+import { useMobile } from '@/hooks/useMobile';
 
 interface ContactCardProps {
   icon: React.ReactNode;
@@ -29,52 +40,41 @@ interface FormStatus {
 }
 
 function ContactCard({ icon, title, subtitle, link, delay, color, isMobile }: ContactCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-
   return (
     <motion.a
       href={link}
-      target={link.startsWith('http') ? '_blank' : undefined}
-      rel={link.startsWith('http') ? 'noopener noreferrer' : undefined}
-      className="block relative group cursor-pointer touch-manipulation"
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`group flex items-center space-x-4 rounded-xl backdrop-blur-lg bg-gradient-to-br from-dark-card/70 via-dark-surface/50 to-dark-card/70 border border-white/10 transition-all duration-300 hover:border-white/20 hover:bg-white/5 touch-manipulation ${
+        isMobile ? 'p-4' : 'p-6'
+      }`}
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: isMobile ? 0.4 : 0.6 }}
-      onMouseEnter={() => !isMobile && setIsHovered(true)}
-      onMouseLeave={() => !isMobile && setIsHovered(false)}
-      whileHover={!isMobile ? { y: -5, scale: 1.02 } : {}}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay }}
+      whileHover={!isMobile ? { 
+        scale: 1.02,
+        boxShadow: `0 10px 30px ${color}30`
+      } : {}}
       whileTap={{ scale: 0.98 }}
     >
-      <div className={`absolute inset-0 ${color} rounded-xl blur-sm ${isMobile ? 'opacity-20' : 'opacity-0 group-hover:opacity-30'} transition-opacity duration-300`} />
-      
-      <div className={`relative rounded-xl backdrop-blur-lg bg-gradient-to-br from-dark-card/90 via-dark-surface/70 to-dark-card/90 border border-cyber-cyan/20 group-hover:border-cyber-cyan/40 transition-all duration-300 ${
-        isMobile ? 'p-4' : 'p-4 sm:p-6'
-      }`}>
-        <div className={`flex items-center ${isMobile ? 'space-x-3' : 'space-x-3 sm:space-x-4'}`}>
-          <div className={`rounded-lg ${color} flex items-center justify-center transition-transform duration-300 ${!isMobile ? 'group-hover:scale-110' : ''} ${
-            isMobile ? 'w-10 h-10 sm:w-12 sm:h-12' : 'w-12 h-12 sm:w-14 sm:h-14'
-          }`}>
-            {icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className={`font-bold font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-cyber-magenta truncate ${
-              isMobile ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
-            }`}>
-              {title}
-            </h3>
-            <p className={`text-white/70 font-rajdhani truncate ${
-              isMobile ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
-            }`}>
-              {subtitle}
-            </p>
-          </div>
-          <motion.div
-            className={`text-cyber-cyan transition-opacity duration-300 flex-shrink-0 ${isMobile ? 'opacity-60' : 'opacity-0 group-hover:opacity-100'}`}
-            animate={isHovered && !isMobile ? { x: 5 } : { x: 0 }}
-          >
-            →
-          </motion.div>
-        </div>
+      <div 
+        className={`flex-shrink-0 ${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-lg bg-gradient-to-br from-cyber-cyan/20 to-cyber-purple/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
+        style={{ background: `linear-gradient(135deg, ${color}20, ${color}10)` }}
+      >
+        {icon}
+      </div>
+      <div className="flex-1">
+        <h4 className={`font-rajdhani font-bold text-white group-hover:text-cyber-cyan transition-colors duration-300 ${
+          isMobile ? 'text-base' : 'text-lg'
+        }`}>
+          {title}
+        </h4>
+        <p className={`text-white/70 font-rajdhani group-hover:text-white/80 transition-colors duration-300 ${
+          isMobile ? 'text-sm' : 'text-base'
+        }`}>
+          {subtitle}
+        </p>
       </div>
     </motion.a>
   );
@@ -102,9 +102,15 @@ function FormField({
   const Component = isTextarea ? 'textarea' : 'input';
   
   return (
-    <div className="space-y-2">
-      <label className={`block font-medium text-cyber-cyan font-rajdhani ${
-        isMobile ? 'text-sm' : 'text-sm'
+    <motion.div
+      className="space-y-2"
+      initial={{ opacity: 0, x: -20 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+    >
+      <label className={`block font-rajdhani font-medium text-cyber-cyan ${
+        isMobile ? 'text-sm' : 'text-base'
       }`}>
         {label}
       </label>
@@ -114,43 +120,36 @@ function FormField({
           ...(name === 'email' && {
             pattern: {
               value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-              message: 'Invalid email address'
+              message: "Invalid email address"
             }
           })
         })}
         type={type}
         placeholder={placeholder}
-        className={`w-full rounded-lg bg-dark-surface/50 border backdrop-blur-sm font-rajdhani text-white placeholder-white/40 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyber-cyan/50 touch-manipulation ${
-          error 
-            ? 'border-red-500 focus:border-red-500' 
-            : 'border-cyber-cyan/30 focus:border-cyber-cyan'
-        } ${isTextarea ? 'min-h-[120px] resize-vertical' : ''} ${
-          isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base'
+        className={`w-full rounded-lg bg-dark-surface/50 border border-white/20 text-white placeholder-white/50 font-rajdhani focus:border-cyber-cyan focus:ring-2 focus:ring-cyber-cyan/20 focus:outline-none transition-all duration-300 backdrop-blur-sm ${
+          error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''
+        } ${isMobile ? 'px-3 py-2 text-sm' : 'px-4 py-3 text-base'} ${
+          isTextarea ? (isMobile ? 'min-h-[80px] resize-y' : 'min-h-[120px] resize-y') : ''
         }`}
-        {...(isTextarea && { rows: isMobile ? 4 : 5 })}
+        {...(isTextarea && { rows: isMobile ? 3 : 4 })}
       />
-      <AnimatePresence>
-        {error && (
-          <motion.p
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className={`text-red-400 font-rajdhani flex items-center space-x-1 ${
-              isMobile ? 'text-xs' : 'text-sm'
-            }`}
-          >
-            <FaTimes className="text-xs" />
-            <span>{error}</span>
-          </motion.p>
-        )}
-      </AnimatePresence>
-    </div>
+      {error && (
+        <motion.p
+          className={`text-red-400 font-rajdhani ${isMobile ? 'text-xs' : 'text-sm'}`}
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {error}
+        </motion.p>
+      )}
+    </motion.div>
   );
 }
 
 export default function Contact() {
   const [formStatus, setFormStatus] = useState<FormStatus>({ type: 'idle', message: '' });
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile } = useMobile();
   const form = useRef<HTMLFormElement>(null);
   
   const {
@@ -160,52 +159,34 @@ export default function Contact() {
     formState: { errors }
   } = useForm<FormData>();
 
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      if (typeof window !== 'undefined') {
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                              window.innerWidth < 768 ||
-                              ('ontouchstart' in window);
-        setIsMobile(Boolean(isMobileDevice));
-      }
-    };
-    
-    checkMobile();
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', checkMobile);
-      return () => window.removeEventListener('resize', checkMobile);
-    }
-  }, []);
-
   const contactMethods = [
     {
-      icon: <FaEnvelope className={`text-white ${isMobile ? 'text-sm sm:text-lg' : 'text-lg sm:text-xl'}`} />,
-      title: "Email",
-      subtitle: "alvin.lennarthsson.dev@gmail.com",
-      link: "mailto:alvin.lennarthsson.dev@gmail.com",
-      color: "bg-gradient-to-br from-cyber-cyan to-cyber-blue",
-    },
-    {
-      icon: <FaLinkedin className={`text-white ${isMobile ? 'text-sm sm:text-lg' : 'text-lg sm:text-xl'}`} />,
-      title: "LinkedIn",
-      subtitle: "Professional Network",
-      link: "https://www.linkedin.com/in/alvin-lennarthsson-aab594220/",
-      color: "bg-gradient-to-br from-cyber-blue to-cyber-purple",
-    },
-    {
-      icon: <FaGithub className={`text-white ${isMobile ? 'text-sm sm:text-lg' : 'text-lg sm:text-xl'}`} />,
+      icon: <FaGithub className={`${isMobile ? 'text-lg' : 'text-xl'} text-white`} />,
       title: "GitHub",
-      subtitle: "Code Repository",
+      subtitle: "Check out my repositories",
       link: "https://github.com/lennartAlvin",
-      color: "bg-gradient-to-br from-cyber-purple to-cyber-magenta",
+      color: "#00f0ff"
     },
     {
-      icon: <FaMapMarkerAlt className={`text-white ${isMobile ? 'text-sm sm:text-lg' : 'text-lg sm:text-xl'}`} />,
+      icon: <FaLinkedin className={`${isMobile ? 'text-lg' : 'text-xl'} text-white`} />,
+      title: "LinkedIn", 
+      subtitle: "Connect with me professionally",
+      link: "https://www.linkedin.com/in/alvin-lennarthsson-b80637266/",
+      color: "#a100ff"
+    },
+    {
+      icon: <FaEnvelope className={`${isMobile ? 'text-lg' : 'text-xl'} text-white`} />,
+      title: "Email",
+      subtitle: "alvin.lennarthsson@hotmail.com",
+      link: "mailto:alvin.lennarthsson@hotmail.com",
+      color: "#00ff80"
+    },
+    {
+      icon: <FaMapMarkerAlt className={`${isMobile ? 'text-lg' : 'text-xl'} text-white`} />,
       title: "Location",
       subtitle: "Alingsås, Sweden",
       link: "https://maps.google.com/?q=Alingsås,Sweden",
-      color: "bg-gradient-to-br from-cyber-magenta to-cyber-pink",
+      color: "#ff6b6b"
     },
   ];
 
@@ -213,22 +194,23 @@ export default function Contact() {
     setFormStatus({ type: 'loading', message: 'Sending your message...' });
 
     try {
-      const templateParams = createEmailTemplate(data);
-
-      await emailjs.send(
+      const result = await emailjs.sendForm(
         emailConfig.serviceId,
         emailConfig.templateId,
-        templateParams,
+        form.current!,
         emailConfig.publicKey
       );
 
-      setFormStatus({ 
-        type: 'success', 
-        message: 'Message sent successfully! I\'ll get back to you soon.' 
-      });
-      reset();
+      if (result.status === 200) {
+        setFormStatus({ 
+          type: 'success', 
+          message: 'Message sent successfully! I\'ll get back to you soon.' 
+        });
+        reset();
+      } else {
+        throw new Error('Failed to send message');
+      }
     } catch (error) {
-      console.error('EmailJS Error:', error);
       setFormStatus({ 
         type: 'error', 
         message: 'Failed to send message. Please try again or contact me directly.' 
@@ -241,7 +223,6 @@ export default function Contact() {
   };
 
   const handleDownloadCV = () => {
-    // TODO: Add actual CV download link
     window.open('/cv.pdf', '_blank');
   };
 
@@ -458,12 +439,37 @@ export default function Contact() {
                   name="message"
                   register={register}
                   error={errors.message?.message}
-                  placeholder="Tell me about your project..."
-                  isTextarea
+                  placeholder="Tell me about your project or just say hello!"
+                  isTextarea={true}
                   isMobile={isMobile}
                 />
 
-                {/* Form Status */}
+                <motion.button
+                  type="submit"
+                  disabled={formStatus.type === 'loading'}
+                  className={`w-full inline-flex items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-cyber-cyan to-cyber-blue text-black font-rajdhani font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:from-cyber-blue hover:to-cyber-cyan touch-manipulation ${
+                    isMobile ? 'px-6 py-3 text-base' : 'px-8 py-4 text-lg'
+                  }`}
+                  whileHover={!isMobile && formStatus.type !== 'loading' ? { 
+                    scale: 1.02,
+                    boxShadow: '0 10px 30px rgba(0, 240, 255, 0.4)'
+                  } : {}}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                >
+                  {formStatus.type === 'loading' ? (
+                    <FaSpinner className={`animate-spin ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                  ) : (
+                    <FaPaperPlane className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
+                  )}
+                  <span>
+                    {formStatus.type === 'loading' ? 'Sending...' : 'Send Message'}
+                  </span>
+                </motion.button>
+
                 <AnimatePresence>
                   {formStatus.type !== 'idle' && (
                     <motion.div
@@ -485,119 +491,10 @@ export default function Contact() {
                     </motion.div>
                   )}
                 </AnimatePresence>
-
-                {/* Submit Button */}
-                <motion.button
-                  type="submit"
-                  disabled={formStatus.type === 'loading'}
-                  className={`w-full inline-flex items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-cyber-cyan to-cyber-blue text-white font-rajdhani font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation ${
-                    isMobile ? 'px-6 py-3 text-base' : 'px-8 py-4 text-lg'
-                  }`}
-                  whileHover={!isMobile && formStatus.type !== 'loading' ? { 
-                    scale: 1.05,
-                    boxShadow: '0 10px 30px rgba(0, 240, 255, 0.3)'
-                  } : {}}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {formStatus.type === 'loading' ? (
-                    <>
-                      <FaSpinner className={`animate-spin ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
-                      <span>Sending...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FaPaperPlane className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
-                      <span>Send Message</span>
-                    </>
-                  )}
-                </motion.button>
               </form>
             </div>
           </motion.div>
         </div>
-
-        {/* Additional CTA Section - Mobile optimized */}
-        <motion.div 
-          className={`text-center ${isMobile ? 'mt-12' : 'mt-16'}`}
-          variants={fadeInUp}
-          transition={{ delay: 1.2 }}
-        >
-          <motion.div 
-            className={`rounded-2xl backdrop-blur-lg bg-gradient-to-br from-dark-card/50 via-dark-surface/30 to-dark-card/50 border border-cyber-green/20 overflow-hidden ${
-              isMobile ? 'p-6 mx-2' : 'p-8 max-w-4xl mx-auto'
-            }`}
-            whileHover={!isMobile ? {
-              borderColor: 'rgba(0, 255, 128, 0.4)',
-              boxShadow: '0 0 30px rgba(0, 255, 128, 0.2)'
-            } : {}}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="absolute inset-0 cyber-grid opacity-5" />
-            <div className="relative z-10">
-              <motion.h3 
-                className={`font-bold font-orbitron mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyber-green to-cyber-cyan ${
-                  isMobile ? 'text-xl' : 'text-2xl'
-                }`}
-                animate={!isMobile ? {
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                } : {}}
-                transition={!isMobile ? {
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "linear"
-                } : {}}
-                style={{
-                  backgroundSize: '200% 200%',
-                }}
-              >
-                Let's Build Something Great
-              </motion.h3>
-              <motion.p 
-                className={`mb-6 text-white/80 font-rajdhani leading-relaxed ${
-                  isMobile ? 'text-sm' : 'text-lg'
-                }`}
-                whileHover={!isMobile ? { color: 'rgba(255, 255, 255, 0.95)' } : {}}
-              >
-                Whether you have a specific project in mind or just want to explore possibilities, 
-                I'm here to help turn your vision into reality. Every great project starts with a conversation.
-              </motion.p>
-              
-              <div className={`flex ${isMobile ? 'flex-col space-y-3' : 'flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6'}`}>
-                <motion.a
-                  href="mailto:alvin.lennarthsson.dev@gmail.com"
-                  className={`inline-flex items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-cyber-green/20 to-cyber-cyan/20 text-cyber-green hover:from-cyber-green/30 hover:to-cyber-cyan/30 border border-cyber-green/30 font-rajdhani font-bold transition-all duration-300 touch-manipulation ${
-                    isMobile ? 'px-6 py-3 text-base' : 'px-8 py-4 text-lg'
-                  }`}
-                  whileHover={!isMobile ? { 
-                    scale: 1.05,
-                    boxShadow: '0 10px 30px rgba(0, 255, 128, 0.3)'
-                  } : {}}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <FaEnvelope className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
-                  <span>Quick Email</span>
-                </motion.a>
-                
-                <motion.a
-                  href="https://www.linkedin.com/in/alvin-lennarthsson-aab594220/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`inline-flex items-center justify-center space-x-2 rounded-lg bg-gradient-to-r from-cyber-cyan to-cyber-blue text-white font-rajdhani font-bold transition-all duration-300 touch-manipulation ${
-                    isMobile ? 'px-6 py-3 text-base' : 'px-8 py-4 text-lg'
-                  }`}
-                  whileHover={!isMobile ? { 
-                    scale: 1.05,
-                    boxShadow: '0 10px 30px rgba(0, 240, 255, 0.3)'
-                  } : {}}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <FaLinkedin className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
-                  <span>Connect on LinkedIn</span>
-                </motion.a>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
       </div>
     </motion.section>
   );

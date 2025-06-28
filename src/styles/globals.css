@@ -6,7 +6,6 @@
 
 @layer base {
   * {
-    cursor: none !important;
     box-sizing: border-box;
   }
   
@@ -15,10 +14,8 @@
     background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 50%, #121212 100%);
     font-family: 'Rajdhani', sans-serif;
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     background-color: #0d0d0d;
     color: #ffffff;
-    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -28,36 +25,28 @@
     -webkit-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    height: 100%;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
   }
 
-  /* Critical Mobile Performance Optimizations */
+  /* Mobile Performance Optimizations */
   @media (max-width: 768px) {
     html {
       font-size: 14px;
-      /* Enable pull-to-refresh on mobile */
       scroll-behavior: auto;
-      /* Allow controlled overscroll for pull-to-refresh */
-      overscroll-behavior-x: none;
-      overscroll-behavior-y: auto;
-      /* Optimize for touch scrolling */
-      -webkit-overflow-scrolling: touch;
     }
     
     body {
       -webkit-text-size-adjust: none;
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
-      /* Allow text selection on mobile for better UX */
       -webkit-user-select: auto;
       -moz-user-select: auto;
       -ms-user-select: auto;
       user-select: auto;
-      /* Enable pull-to-refresh */
-      overscroll-behavior-x: none;
-      overscroll-behavior-y: auto;
-      /* Optimize scrolling performance */
-      -webkit-overflow-scrolling: touch;
-      /* Force hardware acceleration only when needed */
       transform: translateZ(0);
     }
 
@@ -71,17 +60,14 @@
       min-height: 44px;
       min-width: 44px;
       -webkit-tap-highlight-color: rgba(0, 240, 255, 0.2);
-      /* Prevent iOS button styling */
       -webkit-appearance: none;
       border-radius: 0;
     }
 
-    /* Optimize animated elements for mobile - but don't force on all elements */
+    /* Optimize animated elements for mobile */
     .mobile-optimized {
-      /* Force GPU acceleration for better animation performance */
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
-      /* Optimize animations */
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
       -webkit-perspective: 1000;
@@ -97,18 +83,10 @@
       }
     }
 
-    /* Hide scrollbars on mobile but allow functionality */
+    /* Hide scrollbars on mobile */
     ::-webkit-scrollbar {
       width: 0px;
       background: transparent;
-    }
-
-    /* Enable controlled overscroll */
-    html {
-      -webkit-overscroll-behavior-x: none;
-      -webkit-overscroll-behavior-y: auto;
-      overscroll-behavior-x: none;
-      overscroll-behavior-y: auto;
     }
 
     /* Optimize transforms for mobile */
@@ -116,14 +94,6 @@
       -webkit-transform: translateZ(0);
       transform: translateZ(0);
     }
-  }
-
-  /* Enhanced touch-friendly scrolling - but don't prevent overscroll completely */
-  html, body {
-    -webkit-overflow-scrolling: touch;
-    /* Allow vertical overscroll for pull-to-refresh */
-    overscroll-behavior-x: none;
-    overscroll-behavior-y: auto;
   }
 
   /* Better text selection */
@@ -135,12 +105,6 @@
   ::-moz-selection {
     background-color: rgba(0, 240, 255, 0.3);
     color: #ffffff;
-  }
-
-  /* Optimize for 60fps scrolling */
-  html, body {
-    height: 100%;
-    overflow-x: hidden;
   }
 
   /* Prevent layout thrashing */
@@ -192,10 +156,9 @@
     100% { background-position: 0% 50%; }
   }
 
-  /* Optimized Solar System Animations */
+  /* Consolidated Solar System Animations */
   .solar-sun-rotation {
     animation: solar-spin 25s linear infinite;
-    /* Optimize for mobile performance */
     will-change: transform;
     transform: translateZ(0);
   }
@@ -206,107 +169,40 @@
     transform: translateZ(0);
   }
   
-  /* Mobile-optimized orbit classes */
-  @media (max-width: 768px) {
-    .solar-sun-rotation,
-    .solar-sun-text-rotation {
-      /* Reduce animation complexity on mobile */
-      animation-duration: 35s;
-    }
-  }
-  
-  .solar-test-spin {
-    animation: solar-spin 2s linear infinite;
+  /* Unified orbit classes with dynamic durations */
+  .solar-orbit {
     will-change: transform;
     transform: translateZ(0);
   }
   
-  .solar-orbit-20s {
-    animation: solar-spin 20s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
+  .solar-orbit-20s { animation: solar-spin 20s linear infinite; }
+  .solar-orbit-25s { animation: solar-spin 25s linear infinite; }
+  .solar-orbit-30s { animation: solar-spin 30s linear infinite; }
+  .solar-orbit-35s { animation: solar-spin 35s linear infinite; }
+  .solar-orbit-40s { animation: solar-spin 40s linear infinite; }
+  .solar-orbit-45s { animation: solar-spin 45s linear infinite; }
+  .solar-orbit-50s { animation: solar-spin 50s linear infinite; }
   
-  .solar-orbit-25s {
-    animation: solar-spin 25s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-orbit-30s {
-    animation: solar-spin 30s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-orbit-35s {
-    animation: solar-spin 35s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-orbit-40s {
-    animation: solar-spin 40s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-orbit-45s {
-    animation: solar-spin 45s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-orbit-50s {
-    animation: solar-spin 50s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-counter-orbit-20s {
-    animation: solar-spin-reverse 20s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-counter-orbit-25s {
-    animation: solar-spin-reverse 25s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-counter-orbit-30s {
-    animation: solar-spin-reverse 30s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-counter-orbit-35s {
-    animation: solar-spin-reverse 35s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-counter-orbit-40s {
-    animation: solar-spin-reverse 40s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-  
-  .solar-counter-orbit-45s {
-    animation: solar-spin-reverse 45s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
+  .solar-counter-orbit-20s { animation: solar-spin-reverse 20s linear infinite; }
+  .solar-counter-orbit-25s { animation: solar-spin-reverse 25s linear infinite; }
+  .solar-counter-orbit-30s { animation: solar-spin-reverse 30s linear infinite; }
+  .solar-counter-orbit-35s { animation: solar-spin-reverse 35s linear infinite; }
+  .solar-counter-orbit-40s { animation: solar-spin-reverse 40s linear infinite; }
+  .solar-counter-orbit-45s { animation: solar-spin-reverse 45s linear infinite; }
+  .solar-counter-orbit-50s { animation: solar-spin-reverse 50s linear infinite; }
 
-  .solar-counter-orbit-50s {
-    animation: solar-spin-reverse 50s linear infinite;
-    will-change: transform;
-    transform: translateZ(0);
+  /* Apply solar-orbit base class to all orbit classes */
+  [class*="solar-orbit"], [class*="solar-counter-orbit"] {
+    @extend .solar-orbit;
   }
 
   /* Mobile-optimized orbit animations */
   @media (max-width: 768px) {
+    .solar-sun-rotation,
+    .solar-sun-text-rotation {
+      animation-duration: 35s;
+    }
+    
     .solar-orbit-20s { animation-duration: 30s; }
     .solar-orbit-25s { animation-duration: 35s; }
     .solar-orbit-30s { animation-duration: 40s; }
@@ -325,21 +221,13 @@
   }
 
   @keyframes solar-spin {
-    0% { 
-      transform: rotate(0deg); 
-    }
-    100% { 
-      transform: rotate(360deg); 
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
   
   @keyframes solar-spin-reverse {
-    0% { 
-      transform: rotate(0deg); 
-    }
-    100% { 
-      transform: rotate(-360deg); 
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
   }
   
   .solar-planet:hover {
@@ -347,20 +235,15 @@
   }
   
   @keyframes solar-pulse-glow {
-    0% { 
-      filter: brightness(1) drop-shadow(0 0 10px currentColor); 
-    }
-    100% { 
-      filter: brightness(1.3) drop-shadow(0 0 20px currentColor); 
-    }
+    0% { filter: brightness(1) drop-shadow(0 0 10px currentColor); }
+    100% { filter: brightness(1.3) drop-shadow(0 0 20px currentColor); }
   }
 
-  /* Mobile-specific optimizations */
+  /* Unified mobile optimizations */
   .mobile-grid {
     opacity: 0.05 !important;
   }
 
-  /* Touch-friendly buttons */
   .touch-target {
     position: relative;
     min-height: 44px;
@@ -382,7 +265,7 @@
     border-radius: 50%;
   }
 
-  /* Enhanced mobile performance optimizations */
+  /* Consolidated mobile performance optimizations */
   @media (max-width: 768px) {
     .parallax-mobile {
       transform: none !important;
@@ -393,18 +276,15 @@
       transition: none !important;
     }
 
-    /* Optimize blur effects for mobile performance */
     .mobile-reduce-blur {
       filter: blur(8px) !important;
     }
 
-    /* Disable heavy animations on mobile */
     .mobile-disable-animation {
       animation: none !important;
       transition: none !important;
     }
 
-    /* Optimize transforms for mobile */
     .mobile-optimize-transform {
       transform: translateZ(0);
       will-change: transform;
@@ -417,121 +297,74 @@
   .masonry {
     column-gap: 2rem;
   }
-
+  
   .masonry-item {
     break-inside: avoid;
     margin-bottom: 2rem;
   }
 
-  @supports not (column-count: 1) {
+  @media (max-width: 768px) {
     .masonry {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 2rem;
+      column-count: 1;
     }
-
+    
     .masonry-item {
-      margin-bottom: 0;
+      margin-bottom: 1rem;
     }
   }
 
   .neon-glow {
     box-shadow: 
-      0 0 10px rgba(0, 240, 255, 0.6), 
-      0 0 20px rgba(161, 0, 255, 0.4),
-      0 0 30px rgba(255, 0, 200, 0.3);
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 15px currentColor;
   }
 
   .neon-glow-hover:hover {
     box-shadow: 
-      0 0 15px rgba(0, 240, 255, 0.8), 
-      0 0 30px rgba(161, 0, 255, 0.6),
-      0 0 45px rgba(255, 0, 200, 0.4);
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor;
   }
 
   .cyber-border {
-    border: 2px solid transparent;
-    background: linear-gradient(45deg, #00f0ff, #a100ff) border-box;
-    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: destination-out;
-    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
+    border-image: linear-gradient(45deg, 
+      #00f0ff, 
+      transparent, 
+      #ff00c8, 
+      transparent, 
+      #00f0ff
+    ) 1;
   }
 
   .text-holographic {
-    background: linear-gradient(45deg, #00f0ff, #a100ff, #ff00c8);
+    background: linear-gradient(45deg, #00f0ff, #a100ff, #ff00c8, #00ff80);
     background-size: 200% 200%;
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
     animation: holographic 3s ease infinite;
   }
 
-  /* Mobile-optimized holographic text */
   @media (max-width: 768px) {
     .text-holographic {
-      animation-duration: 5s;
+      background: linear-gradient(45deg, #00f0ff, #ff00c8);
+      background-size: 100% 100%;
+      animation: none;
     }
   }
 
-  .custom-cursor {
-    position: fixed;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #00f0ff;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    mix-blend-mode: difference;
-    transition: all 0.1s ease;
-  }
+  /* Safe area utilities */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
+  .mt-safe { margin-top: env(safe-area-inset-top); }
+  .mb-safe { margin-bottom: env(safe-area-inset-bottom); }
+  .ml-safe { margin-left: env(safe-area-inset-left); }
+  .mr-safe { margin-right: env(safe-area-inset-right); }
 
-  .custom-cursor::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 4px;
-    height: 4px;
-    background: #00f0ff;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-  }
-
-  /* Safe area utilities for mobile devices with notches */
-  .pt-safe {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .pl-safe {
-    padding-left: env(safe-area-inset-left);
-  }
-
-  .pr-safe {
-    padding-right: env(safe-area-inset-right);
-  }
-
-  .mt-safe {
-    margin-top: env(safe-area-inset-top);
-  }
-
-  .mb-safe {
-    margin-bottom: env(safe-area-inset-bottom);
-  }
-
-  .ml-safe {
-    margin-left: env(safe-area-inset-left);
-  }
-
-  .mr-safe {
-    margin-right: env(safe-area-inset-right);
-  }
-
-  /* Enhanced touch manipulation */
+  /* Touch utilities */
   .touch-manipulation {
     touch-action: manipulation;
     -webkit-user-select: none;
@@ -540,20 +373,17 @@
 
   .touch-pan-x {
     touch-action: pan-x;
-    overscroll-behavior-x: none;
   }
 
   .touch-pan-y {
     touch-action: pan-y;
-    overscroll-behavior-y: none;
   }
 
   .touch-none {
     touch-action: none;
-    overscroll-behavior: none;
   }
 
-  /* Smooth scrolling utilities */
+  /* Optimized scrolling */
   .scroll-smooth {
     scroll-behavior: smooth;
   }
@@ -564,23 +394,22 @@
     }
   }
 
-  /* Performance optimizations */
+  /* GPU acceleration utilities */
   .gpu-accelerated {
     transform: translateZ(0);
     will-change: transform;
-    backface-visibility: hidden;
   }
 
   .mobile-optimized {
     @media (max-width: 768px) {
       transform: translateZ(0);
-      will-change: auto;
+      will-change: transform;
       backface-visibility: hidden;
     }
   }
 }
 
-/* Optimized particle background */
+/* Simplified particle system */
 .particles-background {
   position: fixed;
   top: 0;
@@ -588,10 +417,8 @@
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: -1;
-  /* Optimize for mobile */
-  transform: translateZ(0);
-  will-change: transform;
+  z-index: 1;
+  opacity: 0.3;
 }
 
 .particle {
@@ -600,35 +427,35 @@
   height: 2px;
   background: #00f0ff;
   border-radius: 50%;
-  opacity: 0.3;
-  animation: float 6s ease-in-out infinite;
-  /* Optimize for mobile */
-  transform: translateZ(0);
-  will-change: transform;
+  animation: particle-float 8s linear infinite;
 }
 
 .particle:nth-child(odd) {
-  animation-delay: -2s;
-  animation-duration: 4s;
+  animation-delay: 2s;
+  background: #ff00c8;
 }
 
 .particle:nth-child(even) {
-  animation-delay: -4s;
-  animation-duration: 8s;
+  animation-delay: 4s;
 }
 
-/* Mobile-specific particle optimizations */
 @media (max-width: 768px) {
   .particle {
-    animation-duration: 8s;
-    opacity: 0.2;
+    animation-duration: 12s;
   }
-  
+
   .particle:nth-child(odd) {
-    animation-duration: 6s;
+    animation-delay: 3s;
   }
-  
+
   .particle:nth-child(even) {
-    animation-duration: 10s;
+    animation-delay: 6s;
   }
+}
+
+@keyframes particle-float {
+  0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100vh) translateX(50px); opacity: 0; }
 }

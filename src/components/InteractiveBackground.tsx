@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, useMotionValue, useSpring } from 'framer-motion';
+import { useThrottled } from '@/hooks/useDebounced';
 
 interface InteractiveBackgroundProps {
   isDark?: boolean;
@@ -33,7 +34,6 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
   const mouseStopTimeout = useRef<NodeJS.Timeout>();
   const lastMouseUpdate = useRef(0);
   
-  // Ultra-smooth mouse tracking with mobile-optimized damping
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const springX = useSpring(mouseX, { 
@@ -47,7 +47,6 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     mass: isMobile ? 0.8 : 0.5 
   });
 
-  // Enhanced mobile detection
   useEffect(() => {
     const checkMobile = () => {
       if (typeof window !== 'undefined') {
@@ -84,19 +83,12 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     }
   }, []);
 
-  // Heavily throttled mouse tracking for mobile performance
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isMobile) return; // Completely skip on mobile
-    
-    const now = performance.now();
-    const throttleTime = isMobile ? 100 : 32; // Much more aggressive throttling
-    if (now - lastMouseUpdate.current < throttleTime) return;
-    lastMouseUpdate.current = now;
-    
+  const handleMouseMove = useThrottled(useCallback((e: MouseEvent) => {
+    if (isMobile) return;
+
     const x = e.clientX;
     const y = e.clientY;
-    
-    // Use requestAnimationFrame for smooth updates
+
     requestAnimationFrame(() => {
       setMousePosition({ x, y });
       mouseX.set(x);
@@ -111,17 +103,11 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     mouseStopTimeout.current = setTimeout(() => {
       setIsMouseMoving(false);
     }, 800);
-  }, [mouseX, mouseY, isMobile]);
+  }, [mouseX, mouseY, isMobile]), 16);
 
-  // Simplified touch handlers with reduced frequency
   const handleTouchStart = useCallback((e: TouchEvent) => {
     if (!isMobile) return;
     
-    const touch = e.touches[0];
-    const x = touch.clientX;
-    const y = touch.clientY;
-    
-    // Center the interaction on mobile for better performance
     const centerX = windowSize.width / 2;
     const centerY = windowSize.height / 2;
     
@@ -131,20 +117,6 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     setIsMouseMoving(true);
   }, [mouseX, mouseY, isMobile, windowSize]);
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (!isMobile) return;
-    
-    const now = performance.now();
-    if (now - lastMouseUpdate.current < 200) return; // Very conservative throttling
-    lastMouseUpdate.current = now;
-    
-    // Keep centered for performance
-    const centerX = windowSize.width / 2;
-    const centerY = windowSize.height / 2;
-    
-    setMousePosition({ x: centerX, y: centerY });
-  }, [isMobile, windowSize]);
-
   const handleTouchEnd = useCallback(() => {
     if (!isMobile) return;
     
@@ -153,9 +125,8 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     }, 400);
   }, [isMobile]);
 
-  // Minimal click/tap handlers
   const handleClick = useCallback((e: MouseEvent) => {
-    if (isMobile || ripples.length >= 1) return; // Single ripple max on mobile
+    if (isMobile || ripples.length >= 1) return;
     
     const newRipple: Ripple = {
       id: Date.now(),
@@ -168,7 +139,7 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     
     setTimeout(() => {
       setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id));
-    }, 600); // Shorter duration
+    }, 600);
   }, [ripples.length, isMobile]);
 
   const handleTouchTap = useCallback((e: TouchEvent) => {
@@ -193,24 +164,20 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Desktop-only mouse events
       if (!isMobile) {
         window.addEventListener('mousemove', handleMouseMove, { passive: true });
         window.addEventListener('click', handleClick, { passive: true });
       }
       
-      // Mobile-only touch events with reduced functionality
       if (isMobile) {
         window.addEventListener('touchstart', handleTouchStart, { passive: true });
         window.addEventListener('touchend', handleTouchEnd, { passive: true });
-        // Remove touchmove and tap handlers for better performance
       }
       
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('click', handleClick);
         window.removeEventListener('touchstart', handleTouchStart);
-        window.removeEventListener('touchmove', handleTouchMove);
         window.removeEventListener('touchend', handleTouchEnd);
         window.removeEventListener('touchend', handleTouchTap);
         if (mouseStopTimeout.current) {
@@ -220,14 +187,12 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
     }
   }, [handleMouseMove, handleClick, handleTouchStart, handleTouchEnd, isMobile]);
 
-  // Simplified gradient with caching
   const getDynamicGradient = useCallback(() => {
     if (!windowSize.width || !windowSize.height || isMobile) {
-      // Static gradient for mobile
       return 'radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.02) 0%, transparent 60%)';
     }
     
-    const xPercent = Math.round((mousePosition.x / windowSize.width) * 5) * 20; // Less granular
+    const xPercent = Math.round((mousePosition.x / windowSize.width) * 5) * 20;
     const yPercent = Math.round((mousePosition.y / windowSize.height) * 5) * 20;
     const intensity = isMouseMoving ? 0.06 : 0.02;
     
@@ -247,7 +212,7 @@ export default function InteractiveBackground({ isDark = true }: InteractiveBack
         className={`absolute inset-0 transition-all ${isMobile ? 'duration-1000' : 'duration-700'} ease-out`}
         style={{
           background: getDynamicGradient(),
-          transform: 'translateZ(0)', // Force GPU acceleration
+          transform: 'translateZ(0)',
         }}
       />
 

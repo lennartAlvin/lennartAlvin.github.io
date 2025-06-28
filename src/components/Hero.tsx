@@ -1,111 +1,52 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { fadeInUp, staggerContainer, heroEntrance, scrollFadeInUp, parallaxFloat, parallaxSlow, typewriterEffect } from '@/utils/animations';
-import { useState, useEffect } from 'react';
+import { useMobile } from '@/hooks/useMobile';
+import { useOptimizedAnimations } from '@/hooks/useOptimizedAnimations';
+import { useInterval } from '@/hooks/useInterval';
+import { useTypewriter } from '@/hooks/useTypewriter';
 
 export default function Hero() {
   const [glitchActive, setGlitchActive] = useState(false);
-  const [typedText, setTypedText] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  
+  const { isMobile, isClient } = useMobile();
+  const {
+    heroEntrance,
+    floatingOrb,
+    complexFloating,
+    staggerContainer,
+    fadeInUp,
+    scrollFadeInUp,
+    getHoverProps,
+    getOptimizedClasses,
+    getViewportConfig,
+    getMobileDuration,
+  } = useOptimizedAnimations();
+
   const roles = ['Software Developer', 'Full-Stack Engineer', 'Problem Solver', 'Code Architect'];
-  const [currentRole, setCurrentRole] = useState(0);
 
-  // Ensure client-side rendering
-  useEffect(() => {
-    setIsClient(true);
-    setIsLoaded(true);
-  }, []);
+  const typedText = useTypewriter({
+    words: roles,
+    typeSpeed: getMobileDuration(120),
+    deleteSpeed: getMobileDuration(120),
+    pauseDuration: getMobileDuration(4000),
+    isMobile,
+  });
 
-  // Enhanced mobile detection with fallbacks
-  useEffect(() => {
-    const checkMobile = () => {
-      if (typeof window !== 'undefined') {
-        const userAgent = navigator.userAgent || '';
-        const isMobileDevice = 
-          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) ||
-          window.innerWidth < 768 ||
-          ('ontouchstart' in window) ||
-          window.matchMedia('(pointer: coarse)').matches;
-        
-        setIsMobile(Boolean(isMobileDevice));
-      } else {
-        // Server-side fallback
-        setIsMobile(false);
-      }
-    };
-    
-    // Initial check
-    checkMobile();
-    
-    if (typeof window !== 'undefined') {
-      const debouncedCheck = () => {
-        clearTimeout((window as any).mobileCheckTimeout);
-        (window as any).mobileCheckTimeout = setTimeout(checkMobile, 100);
-      };
-      
-      window.addEventListener('resize', debouncedCheck, { passive: true });
-      window.addEventListener('orientationchange', debouncedCheck, { passive: true });
-      
-      return () => {
-        window.removeEventListener('resize', debouncedCheck);
-        window.removeEventListener('orientationchange', debouncedCheck);
-        clearTimeout((window as any).mobileCheckTimeout);
-      };
-    }
-  }, []);
-
-  useEffect(() => {
+  useInterval(() => {
     if (!isClient) return;
     
-    const interval = setInterval(() => {
-      setGlitchActive(true);
-      setTimeout(() => setGlitchActive(false), isMobile ? 100 : 200);
-    }, isMobile ? 8000 : 5000);
+    setGlitchActive(true);
+    setTimeout(() => setGlitchActive(false), getMobileDuration(200));
+  }, isClient ? getMobileDuration(5000) : null);
 
-    return () => clearInterval(interval);
-  }, [isMobile, isClient]);
-
-  useEffect(() => {
-    if (!isClient) return;
-    
-    const typeRole = () => {
-      const role = roles[currentRole];
-      let index = 0;
-      const typeInterval = setInterval(() => {
-        setTypedText(role.slice(0, index));
-        index++;
-        if (index > role.length) {
-          clearInterval(typeInterval);
-          setTimeout(() => {
-            const deleteInterval = setInterval(() => {
-              setTypedText(role.slice(0, index));
-              index--;
-              if (index < 0) {
-                clearInterval(deleteInterval);
-                setCurrentRole((prev) => (prev + 1) % roles.length);
-              }
-            }, isMobile ? 100 : 120);
-          }, isMobile ? 3000 : 4000);
-        }
-      }, isMobile ? 150 : 120);
-    };
-
-    typeRole();
-  }, [currentRole, isMobile, isClient]);
-
-  // Don't render until client-side is ready
-  if (!isClient || !isLoaded) {
+  if (!isClient) {
     return (
-      <section className="relative min-h-screen flex items-center justify-center py-12 sm:py-20 overflow-hidden bg-gradient-to-br from-dark-bg via-dark-surface to-dark-card">
+      <section className="relative min-h-screen flex items-center justify-center py-12 sm:py-20 overflow-hidden">
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-pulse">
             <div className="h-8 bg-cyber-cyan/20 rounded w-32 mx-auto mb-6"></div>
             <div className="h-16 bg-gradient-to-r from-cyber-cyan/20 to-cyber-magenta/20 rounded w-64 mx-auto mb-6"></div>
             <div className="h-6 bg-white/10 rounded w-48 mx-auto mb-4"></div>
-            <div className="text-xs text-white/40 font-rajdhani">
-              Loading Hero Section...
-            </div>
           </div>
         </div>
       </section>
@@ -114,44 +55,38 @@ export default function Hero() {
 
   return (
     <motion.section
-      className={`relative min-h-screen flex items-center justify-center py-12 sm:py-20 overflow-hidden ${isMobile ? 'mobile-optimized' : ''}`}
+      className={getOptimizedClasses(`relative min-h-screen flex items-center justify-center py-12 sm:py-20 overflow-hidden`)}
       {...heroEntrance}
       style={{ 
-        minHeight: isMobile ? '100svh' : '100vh' // Use safe viewport height on mobile
+        minHeight: isMobile ? '100svh' : '100vh'
       }}
     >
-      {/* Enhanced Cyber Grid Background with Parallax - Reduced on mobile */}
+      {/* Enhanced Cyber Grid Background */}
       <motion.div 
         className={`absolute inset-0 cyber-grid ${isMobile ? 'opacity-5' : 'opacity-10'}`}
-        {...(isMobile ? {} : parallaxSlow)}
       />
       
-      {/* Enhanced Floating Orbs with Parallax - Simplified on mobile */}
+      {/* Enhanced Floating Orbs */}
       <motion.div 
         className={`absolute ${isMobile ? 'top-10 left-10 w-32 h-32' : 'top-20 left-20 w-64 h-64'} bg-gradient-to-r from-cyber-cyan/20 to-cyber-blue/20 rounded-full blur-3xl`}
-        {...(isMobile ? { animate: { y: [-10, 10, -10], transition: { duration: 4, repeat: Infinity, ease: "easeInOut" } } } : parallaxFloat)}
+        {...floatingOrb('subtle')}
       />
       <motion.div 
         className={`absolute ${isMobile ? 'bottom-10 right-10 w-48 h-48' : 'bottom-20 right-20 w-96 h-96'} bg-gradient-to-r from-cyber-magenta/20 to-cyber-purple/20 rounded-full blur-3xl`}
-        animate={{
-          y: [isMobile ? -15 : -30, isMobile ? 15 : 30, isMobile ? -15 : -30],
-          x: [isMobile ? -8 : -15, isMobile ? 8 : 15, isMobile ? -8 : -15],
-          scale: [1, isMobile ? 1.05 : 1.1, 1],
-          transition: {
-            duration: isMobile ? 6 : 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }
-        }}
+        {...complexFloating(
+          [isMobile ? -8 : -15, isMobile ? 8 : 15, isMobile ? -8 : -15],
+          [isMobile ? -15 : -30, isMobile ? 15 : 30, isMobile ? -15 : -30]
+        )}
       />
       <motion.div 
         className={`absolute top-1/2 left-1/4 ${isMobile ? 'w-16 h-16' : 'w-32 h-32'} bg-gradient-to-r from-cyber-green/30 to-cyber-cyan/30 rounded-full blur-2xl`}
+        {...floatingOrb('medium')}
         animate={{
-          y: [isMobile ? -8 : -15, isMobile ? 8 : 15, isMobile ? -8 : -15],
+          ...floatingOrb('medium').animate,
           rotate: [0, 360],
           transition: {
-            y: { duration: isMobile ? 4 : 6, repeat: Infinity, ease: "easeInOut" },
-            rotate: { duration: isMobile ? 15 : 20, repeat: Infinity, ease: "linear" }
+            ...floatingOrb('medium').animate.transition,
+            rotate: { duration: getMobileDuration(20), repeat: Infinity, ease: "linear" }
           }
         }}
       />
@@ -161,14 +96,14 @@ export default function Hero() {
           className="space-y-4 sm:space-y-6 lg:space-y-8 text-center lg:text-left"
           initial="initial"
           whileInView="animate"
-          viewport={{ once: true }}
+          viewport={getViewportConfig()}
           variants={staggerContainer}
         >
           {/* Greeting with enhanced animation */}
           <motion.div 
             className="text-cyber-cyan font-rajdhani text-base sm:text-lg font-medium"
-            {...scrollFadeInUp}
-            whileHover={!isMobile ? { x: 10, transition: { duration: 0.3 } } : {}}
+            {...fadeInUp}
+            {...getHoverProps({ x: 10, transition: { duration: 0.3 } })}
           >
             Hello, I'm
           </motion.div>
@@ -229,7 +164,7 @@ export default function Hero() {
             </motion.span>
           </motion.h1>
 
-          {/* Enhanced Typed Role with Typewriter Effect - Responsive */}
+          {/* Optimized Typed Role with Typewriter Effect */}
           <motion.div 
             className={`font-rajdhani text-white/80 flex items-center justify-center lg:justify-start overflow-hidden ${
               isMobile 
@@ -240,10 +175,7 @@ export default function Hero() {
             transition={{ delay: 0.4 }}
           >
             <span className="text-cyber-green mr-2">{'>'}</span>
-            <motion.div
-              className="font-mono relative"
-              {...(isMobile ? {} : typewriterEffect)}
-            >
+            <motion.div className="font-mono relative">
               {typedText}
               <motion.span 
                 className="text-cyber-cyan ml-1"
@@ -262,140 +194,51 @@ export default function Hero() {
                 ? 'text-sm sm:text-base px-2 sm:px-0' 
                 : 'text-base sm:text-lg md:text-xl'
             }`}
-            initial={{ y: 50, opacity: 0 }}
-            whileInView={{ y: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            whileHover={!isMobile ? { 
-              color: 'rgba(255, 255, 255, 0.9)',
-              transition: { duration: 0.3 }
-            } : {}}
+            {...scrollFadeInUp}
+            transition={{ delay: 0.6 }}
           >
-            Crafting digital experiences with cutting-edge technology. 
-            Specializing in full-stack development with a passion for clean code, 
-            innovative solutions, and user-centric design.
+            Passionate about creating robust, scalable solutions with modern technologies. 
+            Specializing in C#, .NET, and full-stack development with a focus on clean architecture and performance optimization.
           </motion.p>
-
-          {/* Enhanced Tech Stack Highlights - Responsive */}
-          <motion.div 
-            className={`flex flex-wrap gap-2 sm:gap-3 ${isMobile ? 'justify-center lg:justify-start px-2' : 'justify-center lg:justify-start'}`}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            transition={{ delay: 0.8 }}
-          >
-            {['C#', '.NET', 'React', 'TypeScript', 'Azure'].map((tech, index) => (
-              <motion.span
-                key={tech}
-                className={`px-3 py-1 rounded-full bg-gradient-to-r from-cyber-cyan/20 to-cyber-purple/20 text-cyber-cyan border border-cyber-cyan/30 font-rajdhani font-medium transition-all duration-300 touch-manipulation ${
-                  isMobile ? 'text-xs' : 'text-sm'
-                }`}
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.8 + index * 0.1, duration: 0.5 }}
-                whileHover={!isMobile ? {
-                  scale: 1.05,
-                  backgroundColor: 'rgba(0, 240, 255, 0.1)',
-                  borderColor: 'rgba(0, 240, 255, 0.5)'
-                } : {}}
-                whileTap={{ scale: 0.95 }}
-              >
-                {tech}
-              </motion.span>
-            ))}
-          </motion.div>
 
           {/* Enhanced CTA Buttons - Mobile optimized */}
           <motion.div 
-            className={`flex flex-col sm:flex-row gap-4 ${isMobile ? 'px-4' : ''} ${isMobile ? 'items-stretch' : 'items-center justify-center lg:justify-start'}`}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            transition={{ delay: 1 }}
+            className={`flex ${isMobile ? 'flex-col space-y-3' : 'flex-row space-x-4'} justify-center lg:justify-start`}
+            {...scrollFadeInUp}
+            transition={{ delay: 0.8 }}
           >
             <motion.a
               href="#projects"
-              className={`group relative overflow-hidden rounded-lg bg-gradient-to-r from-cyber-cyan to-cyber-blue text-white font-rajdhani font-bold transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyber-cyan/25 touch-manipulation ${
-                isMobile ? 'px-6 py-3 text-base text-center' : 'px-8 py-4 text-lg'
-              }`}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 1, duration: 0.6 }}
-              whileHover={!isMobile ? { scale: 1.05 } : {}}
-              whileTap={{ scale: 0.95 }}
+              className={`group relative overflow-hidden ${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4 text-base'} rounded-lg bg-gradient-to-r from-cyber-cyan to-cyber-blue text-black font-rajdhani font-bold transition-all duration-300 hover:from-cyber-blue hover:to-cyber-cyan transform hover:scale-105 hover:shadow-lg hover:shadow-cyber-cyan/25 touch-manipulation`}
+              whileHover={!isMobile ? { y: -2 } : {}}
+              whileTap={{ scale: 0.98 }}
             >
               <span className="relative z-10">View My Work</span>
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-cyber-blue to-cyber-cyan opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                initial={false}
+                className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '100%' }}
+                transition={{ duration: 0.6 }}
               />
             </motion.a>
             
             <motion.a
               href="#contact"
-              className={`group relative overflow-hidden rounded-lg border-2 border-cyber-cyan/50 text-cyber-cyan font-rajdhani font-bold backdrop-blur-sm transition-all duration-300 hover:bg-cyber-cyan/10 hover:border-cyber-cyan hover:scale-105 touch-manipulation ${
-                isMobile ? 'px-6 py-3 text-base text-center' : 'px-8 py-4 text-lg'
-              }`}
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-              whileHover={!isMobile ? { 
-                scale: 1.05,
-                backgroundColor: 'rgba(0, 240, 255, 0.1)'
-              } : {}}
-              whileTap={{ scale: 0.95 }}
+              className={`group ${isMobile ? 'px-6 py-3 text-sm' : 'px-8 py-4 text-base'} rounded-lg border-2 border-cyber-cyan text-cyber-cyan font-rajdhani font-bold hover:bg-cyber-cyan hover:text-black transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-cyber-cyan/25 touch-manipulation`}
+              whileHover={!isMobile ? { y: -2 } : {}}
+              whileTap={{ scale: 0.98 }}
             >
-              <span className="relative z-10">Get In Touch</span>
+              Get In Touch
             </motion.a>
           </motion.div>
         </motion.div>
 
-        {/* Enhanced Visual Element/Avatar - Responsive */}
+        {/* Enhanced Avatar Section - Responsive */}
         <motion.div 
-          className={`relative ${isMobile ? 'order-first mb-6' : ''} flex items-center justify-center`}
-          initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
-          whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="flex justify-center lg:justify-end"
+          {...scrollFadeInUp}
+          transition={{ delay: 1 }}
         >
-          {/* Animated Rings - Responsive sizing */}
-          <motion.div 
-            className={`absolute rounded-full border-2 border-cyber-cyan/30 ${
-              isMobile ? 'w-48 h-48' : 'w-64 h-64 sm:w-80 sm:h-80'
-            }`}
-            animate={!isMobile ? {
-              rotate: [0, 360],
-              scale: [1, 1.1, 1],
-            } : { rotate: [0, 360] }}
-            transition={!isMobile ? {
-              rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-              scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
-            } : {
-              rotate: { duration: 30, repeat: Infinity, ease: "linear" }
-            }}
-          />
-          <motion.div 
-            className={`absolute rounded-full border-2 border-cyber-magenta/30 ${
-              isMobile ? 'w-36 h-36' : 'w-48 h-48 sm:w-64 sm:h-64'
-            }`}
-            animate={!isMobile ? {
-              rotate: [360, 0],
-              scale: [1, 0.9, 1],
-            } : { rotate: [360, 0] }}
-            transition={!isMobile ? {
-              rotate: { duration: 15, repeat: Infinity, ease: "linear" },
-              scale: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }
-            } : {
-              rotate: { duration: 25, repeat: Infinity, ease: "linear" }
-            }}
-          />
-          
-          {/* Central Avatar/Logo */}
           <motion.div 
             className={`relative bg-gradient-to-br from-dark-card to-dark-surface rounded-full border-4 border-cyber-cyan/50 flex items-center justify-center backdrop-blur-lg ${
               isMobile ? 'w-24 h-24' : 'w-32 h-32 sm:w-40 sm:h-40'
@@ -444,30 +287,32 @@ export default function Hero() {
       </div>
 
       {/* Scroll Indicator - Mobile optimized */}
-      <motion.div 
-        className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center ${isMobile ? 'text-xs' : 'text-sm'}`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 2, duration: 0.8 }}
+      <motion.div
+        className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 ${isMobile ? 'scale-75' : ''}`}
+        animate={{
+          y: [0, 10, 0],
+          opacity: 1,
+        }}
+        initial={{ opacity: 0 }}
+        transition={{
+          y: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+          opacity: { delay: 2, duration: 0.5 }
+        }}
       >
-        <motion.div
-          className="text-white/60 font-rajdhani mb-2"
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          {isMobile ? 'Swipe to explore' : 'Scroll to explore'}
-        </motion.div>
-        <motion.div
-          className="w-6 h-10 border-2 border-white/30 rounded-full mx-auto relative"
-          animate={{ opacity: [0.6, 1, 0.6] }}
-          transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-        >
+        <div className="w-6 h-10 border-2 border-cyber-cyan/50 rounded-full flex justify-center">
           <motion.div
-            className="w-1 h-2 bg-cyber-cyan rounded-full absolute top-2 left-1/2 transform -translate-x-1/2"
-            animate={{ y: [0, 12, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="w-1 h-3 bg-cyber-cyan rounded-full mt-2"
+            animate={{
+              y: [0, 16, 0],
+              opacity: [1, 0, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
           />
-        </motion.div>
+        </div>
       </motion.div>
     </motion.section>
   );

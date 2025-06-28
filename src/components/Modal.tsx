@@ -34,7 +34,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
         >
           {/* Enhanced Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            className="absolute inset-0 bg-black/80 backdrop-blur-md"
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -46,7 +46,7 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
           
           {/* Modal Content */}
           <motion.div
-            className="relative bg-gradient-to-br from-dark-card via-dark-surface to-dark-card text-white p-8 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-cyber-cyan/30"
+            className="relative bg-gradient-to-br from-gray-900/95 via-gray-800/95 to-gray-900/95 text-white p-8 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-cyan-400/30 backdrop-blur-lg"
             initial={{ scale: 0.8, opacity: 0, y: 50 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.8, opacity: 0, y: 50 }}
@@ -60,12 +60,12 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
             }}
           >
             {/* Glassmorphism overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-cyber-cyan/5 via-transparent to-cyber-magenta/5 rounded-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 rounded-2xl" />
             
             {/* Close Button */}
             <motion.button
               onClick={onClose}
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-cyber-magenta/20 hover:bg-cyber-magenta/30 border border-cyber-magenta/50 text-cyber-magenta hover:text-white transition-all duration-300 flex items-center justify-center group"
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 text-red-400 hover:text-white transition-all duration-300 flex items-center justify-center group"
               whileHover={{ scale: 1.1, rotate: 90 }}
               whileTap={{ scale: 0.9 }}
               aria-label="Close modal"
@@ -79,8 +79,8 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
             </div>
             
             {/* Decorative Elements */}
-            <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyber-cyan/20 to-transparent rounded-full blur-xl" />
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-cyber-magenta/20 to-transparent rounded-full blur-xl" />
+            <div className="absolute top-0 left-0 w-20 h-20 bg-gradient-to-br from-cyan-400/20 to-transparent rounded-full blur-xl" />
+            <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-purple-400/20 to-transparent rounded-full blur-xl" />
           </motion.div>
         </motion.div>
       )}

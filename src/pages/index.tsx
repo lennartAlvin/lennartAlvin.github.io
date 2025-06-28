@@ -7,51 +7,29 @@ import About from '@/components/About';
 import Skills from '@/components/Skills';
 import Projects from '@/components/Projects';
 import Contact from '@/components/Contact';
-import CustomCursor from '@/components/CustomCursor';
 import ParticleBackground from '@/components/ParticleBackground';
 import InteractiveBackground from '@/components/InteractiveBackground';
 import { sectionFadeSlide } from '@/utils/animations';
+import { useMobile } from '@/hooks/useMobile';
 
 export default function Home() {
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [isMobile, setIsMobile] = useState(false);
+  const { isMobile, isClient } = useMobile();
 
-  // Enhanced mobile detection
   useEffect(() => {
-    const checkMobile = () => {
-      if (typeof window !== 'undefined') {
-        const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-                              window.innerWidth < 768 ||
-                              ('ontouchstart' in window) ||
-                              (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
-        setIsMobile(Boolean(isMobileDevice));
-      }
-    };
-    
-    checkMobile();
     if (typeof window !== 'undefined') {
-      window.addEventListener('resize', checkMobile, { passive: true });
-      return () => window.removeEventListener('resize', checkMobile);
+      const stored = localStorage.getItem('theme');
+      setIsDarkMode(stored !== 'light');
     }
   }, []);
 
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? localStorage.getItem('theme') : null;
-    if (stored === 'light') {
-      setIsDarkMode(false);
-    } else {
-      setIsDarkMode(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (isClient) {
       localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
     }
-  }, [isDarkMode]);
+  }, [isDarkMode, isClient]);
 
-  // Mobile-optimized section transition
-  const mobileOptimizedFadeSlide = {
+  const sectionTransition = {
     ...sectionFadeSlide,
     transition: isMobile 
       ? { duration: 0.4, ease: "easeOut" } 
@@ -74,19 +52,13 @@ export default function Home() {
         <link rel="apple-touch-icon" href="/favicon.ico" />
       </Head>
 
-      {/* Custom Cursor - Desktop only */}
-      {!isMobile && <CustomCursor />}
-      
-      {/* Interactive Background */}
       <InteractiveBackground isDark={isDarkMode} />
       
-      {/* Particle Background - Desktop only for performance */}
       {!isMobile && <ParticleBackground />}
 
-      {/* Enhanced Dark Mode Toggle - Mobile optimized */}
       <motion.button
         onClick={() => setIsDarkMode(!isDarkMode)}
-        className={`fixed ${isMobile ? 'top-3 right-3' : 'top-4 right-4 sm:top-6 sm:right-6'} z-50 ${isMobile ? 'p-2' : 'p-2 sm:p-3'} rounded-full bg-gradient-to-r from-cyber-cyan/20 to-cyber-blue/20 hover:from-cyber-cyan/30 hover:to-cyber-blue/30 border border-cyber-cyan/30 backdrop-blur-sm transition-all duration-300 group touch-manipulation mobile-optimized`}
+        className={`fixed ${isMobile ? 'top-3 right-3 p-2' : 'top-4 right-4 sm:top-6 sm:right-6 p-2 sm:p-3'} z-50 rounded-full bg-gradient-to-r from-cyber-cyan/20 to-cyber-blue/20 hover:from-cyber-cyan/30 hover:to-cyber-blue/30 border border-cyber-cyan/30 backdrop-blur-sm transition-all duration-300 group touch-manipulation mobile-optimized`}
         whileHover={!isMobile ? { 
           scale: 1.1, 
           y: -2,
@@ -107,43 +79,25 @@ export default function Home() {
       </motion.button>
 
       <main className={`relative z-10 ${isMobile ? 'mobile-optimized' : ''}`}>
-        {/* Hero Section */}
         <Hero />
         
-        {/* About Section with Mobile-optimized Transitions */}
-        <motion.div
-          {...mobileOptimizedFadeSlide}
-          className={`relative ${isMobile ? 'mobile-optimized' : ''}`}
-        >
+        <motion.div {...sectionTransition} className={`relative ${isMobile ? 'mobile-optimized' : ''}`}>
           <About />
         </motion.div>
         
-        {/* Skills Section with Mobile-optimized Transitions */}
-        <motion.div
-          {...mobileOptimizedFadeSlide}
-          className={`relative ${isMobile ? 'mobile-optimized' : ''}`}
-        >
+        <motion.div {...sectionTransition} className={`relative ${isMobile ? 'mobile-optimized' : ''}`}>
           <Skills isDark={isDarkMode} />
         </motion.div>
         
-        {/* Projects Section with Mobile-optimized Transitions */}
-        <motion.div
-          {...mobileOptimizedFadeSlide}
-          className={`relative ${isMobile ? 'mobile-optimized' : ''}`}
-        >
+        <motion.div {...sectionTransition} className={`relative ${isMobile ? 'mobile-optimized' : ''}`}>
           <Projects isDark={isDarkMode} />
         </motion.div>
         
-        {/* Contact Section with Mobile-optimized Transitions */}
-        <motion.div
-          {...mobileOptimizedFadeSlide}
-          className={`relative ${isMobile ? 'mobile-optimized' : ''}`}
-        >
+        <motion.div {...sectionTransition} className={`relative ${isMobile ? 'mobile-optimized' : ''}`}>
           <Contact />
         </motion.div>
       </main>
 
-      {/* Enhanced Footer - Mobile optimized */}
       <motion.footer
         className={`relative z-10 py-12 text-center border-t border-cyber-cyan/20 backdrop-blur-sm bg-dark-surface/50 ${isMobile ? 'mobile-optimized' : ''}`}
         initial={{ opacity: 0, y: 50 }}
@@ -163,7 +117,6 @@ export default function Home() {
             © {new Date().getFullYear()} Alvin Lennarthsson. All rights reserved.
           </motion.p>
           
-          {/* Enhanced Status Indicators - Mobile optimized */}
           <motion.div 
             className={`flex justify-center items-center ${isMobile ? 'space-x-4 mb-4' : 'space-x-8 mb-6'}`}
             initial={{ opacity: 0, y: 20 }}
@@ -198,7 +151,6 @@ export default function Home() {
             </div>
           </motion.div>
           
-          {/* Animated Dots - Desktop only */}
           {!isMobile && (
             <div className="flex justify-center space-x-6">
               <motion.span
